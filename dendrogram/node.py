@@ -16,6 +16,8 @@ class Node(Cluster):
         self._rc: Union[Node, None] = None
         # descendant cache
         self._descendants: List[Node] = []
+        # node height from deepest leaf
+        self._height = 1
 
     @property
     def _disconnected(self):
@@ -58,6 +60,10 @@ class Node(Cluster):
     def _disconnect_right(self):
         if self._rc is not None:
             self._rc._disconnect()
+
+    @property
+    def height(self):
+        return self._height
 
     @property
     def parent(self):
@@ -139,6 +145,8 @@ class Node(Cluster):
                 tmp2.append(self._lc)
             self.data_points = tmp1
             self._descendants = tmp2
+        # update the height of the node
+        self._height = max(self._lc._height, self._rc._height) + 1
         # after updating itself cluster cache, its parent should be notified
         if self.parent is not None:
             self.parent._update_cache()
