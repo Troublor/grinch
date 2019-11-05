@@ -170,6 +170,14 @@ class Node(Cluster):
         return list(self._descendants)
 
     @property
+    def lvs(self):
+        tmp = []
+        for n in self._descendants:
+            if isinstance(n, Leaf):
+                tmp.append(n)
+        return tmp
+
+    @property
     def sibling(self):
         if self.parent is None:
             return None

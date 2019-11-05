@@ -23,7 +23,7 @@ class Grinch(RotationHAC):
             p = self.graft(p)
 
     def graft(self, v: Node) -> Union[Node, None]:
-        l = self.constr_nearest_neighbour(v, v.descendants)
+        l = self.constr_nearest_neighbour(v, v.lvs)
         if v is None or l is None:
             print()
         v_prime = lca(v, l)
