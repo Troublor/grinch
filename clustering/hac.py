@@ -26,13 +26,14 @@ class HAC:
         return self.constr_nearest_neighbour(x, [])
 
     def constr_nearest_neighbour(self, x: Node, exclude: List[Cluster]) -> Union[Node, None]:
+        # search among leaves
         if self.dendrogram.root is None:
             return None
         descendants = self.dendrogram.descendants
         max_value = -sys.float_info.max
         nearest = None
         for n in descendants:
-            if n in exclude:
+            if n in exclude or not isinstance(n, Leaf):
                 continue
             tmp = self.f(n, x)
             if self.f(n, x) >= max_value:
@@ -64,7 +65,10 @@ class HAC:
                     merge_node.parent.rchild = None
             p_parent = merge_point.parent
             parent = Node()
-            p_parent.replace_child(merge_point, parent)
+            if p_parent.is_left_child(merge_point):
+                p_parent.lchild = parent
+            elif p_parent.is_right_child(merge_point):
+                p_parent.rchild = parent
             parent.lchild = merge_point
             parent.rchild = merge_node
             return parent
@@ -99,3 +103,22 @@ class HAC:
                 return None
         else:
             return tmp
+
+    @staticmethod
+    def swap(s: Node, a: Node):
+        s_par = s.parent
+        a_par = a.parent
+        if s_par.lchild == s:
+            if a_par.lchild == a:
+                s_par.lchild = a
+                a_par.lchild = s
+            elif a_par.rchild == a:
+                s_par.lchild = a
+                a_par.lchild = s
+        elif s_par.rchild == s:
+            if a_par.lchild == a:
+                s_par.rchild = a
+                a_par.lchild = s
+            elif a_par.rchild == a:
+                s_par.rchild = a
+                a_par.lchild = s

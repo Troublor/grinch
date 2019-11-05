@@ -63,12 +63,6 @@ class Grinch(RotationHAC):
                 self.swap(z.sibling, m)
             z = z.parent
 
-    @staticmethod
-    def swap(s: Node, a: Node):
-        a_parent = a.parent
-        s.parent.replace_child(s, a)
-        a_parent.replace_child(a, s)
-
     def constr_nearest_neighbour(self, x: Node, exclude: List[Cluster]) -> Union[Node, None]:
         # search among leaves
         if self.dendrogram.root is None:

@@ -184,27 +184,11 @@ class Node(Cluster):
             return None
         return self.parent.sibling
 
-    def replace_child(self, replace, new) -> bool:
-        """
-        :type replace: Node
-        :type new: Node
-        """
-        parent = new._par
-        if self._lc == replace:
-            self._disconnect_left()
-            new._disconnect()
-            self._left_connect(new)
-            if parent is not None:
-                parent.lchild = None
-        elif self._rc == replace:
-            self._disconnect_right()
-            new._disconnect()
-            self._right_connect(new)
-            if parent is not None:
-                parent.rchild = None
-        else:
-            return False
-        return True
+    def is_left_child(self, child):
+        return self._lc == child
+
+    def is_right_child(self, child):
+        return self._rc == child
 
     def __str__(self):
         return str(self.data_points)

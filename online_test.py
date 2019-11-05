@@ -8,15 +8,18 @@ from model.data_point import TrivialDataPoint
 class MyTestCase(unittest.TestCase):
     def test_onlineHAC_trivialDataPoint(self):
         data = [
+            TrivialDataPoint(-1),
             TrivialDataPoint(1),
+            TrivialDataPoint(-3),
 
             TrivialDataPoint(3),
             TrivialDataPoint(2),
+            TrivialDataPoint(-2),
         ]
         clustering = OnlineHAC(single_linkage)
         for d in data:
             clustering.insert(d)
-        clustering.print_tree()
+            clustering.print_tree()
         self.assertTrue(True)
 
 
