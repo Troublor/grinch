@@ -222,3 +222,7 @@ class Leaf(Node):
     @rchild.setter
     def rchild(self, right_child):
         raise Exception("leaf node can not have child")
+
+    @property
+    def data_point(self) -> DataPoint:
+        return self.data_points[0]
