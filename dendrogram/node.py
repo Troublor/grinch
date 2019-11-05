@@ -97,6 +97,9 @@ class Node(Cluster):
     def descendants(self) -> List:
         return list(self._descendants)
 
+    def __str__(self):
+        return str(self.data_points)
+
 
 class Leaf(Node):
     def __init__(self, data_point: DataPoint, parent: Union[Node, None]):
