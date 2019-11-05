@@ -12,7 +12,7 @@ from model.data_point import DataPoint
 class HAC:
     def __init__(self, f: Callable[[Cluster, Cluster], float]):
         # the dendrogram tree, only store its root node
-        self.dendrogram: Tree = None
+        self.dendrogram: Tree = Tree()
         # the linkage function
         self.f: Callable[[Cluster, Cluster], float] = f
 
@@ -26,18 +26,48 @@ class HAC:
         return self.constr_nearest_neighbour(x, [])
 
     def constr_nearest_neighbour(self, x: Node, exclude: List[Cluster]) -> Union[Node, None]:
-        if self.dendrogram is None:
+        if self.dendrogram.root is None:
             return None
         descendants = self.dendrogram.descendants
-        descendants.append(self.dendrogram)
-        max_value = sys.float_info.min
+        max_value = -sys.float_info.max
         nearest = None
         for n in descendants:
             if n in exclude:
                 continue
+            tmp = self.f(n, x)
             if self.f(n, x) >= max_value:
+                max_value = tmp
                 nearest = n
         return nearest
+
+    def make_sib(self, merge_point: Node, merge_node: Node) -> Node:
+        """
+        make_sib merge merge_point to merge_node by creating a new node,
+            whose children is merge_point and merge_node and
+            which is attached to the parent of merge_point
+        returns the created node
+        """
+        if merge_point is None:
+            self.dendrogram.root = merge_node
+            return merge_node
+        elif merge_point.parent is None:
+            root = Node()
+            root.lchild = merge_point
+            root.rchild = merge_node
+            self.dendrogram.root = root
+            return root
+        else:
+            if merge_node.parent is not None:
+                if merge_node == merge_node.parent.lchild:
+                    merge_node.parent.lchild = None
+                elif merge_node == merge_node.parent.rchild:
+                    merge_node.parent.rchild = None
+            p_parent = merge_point.parent
+            parent = Node()
+            p_parent.replace_child(merge_point, parent)
+            parent.lchild = merge_point
+            parent.rchild = merge_node
+            return parent
 
     def print_tree(self):
         tree = treelib.Tree()
@@ -48,16 +78,20 @@ class HAC:
                 traverse_tree(root.lchild, root)
             if root.rchild is not None:
                 traverse_tree(root.rchild, root)
-        traverse_tree(self.dendrogram, None)
+
+        traverse_tree(self.dendrogram.root, None)
 
         tree.show(data_property="data_points")
 
     @staticmethod
-    def lca(n1: Node, n2: Node) -> Union[Node, None]:
+    def lca(n1: Union[Node, None], n2: Union[Node, None]) -> Union[Node, None]:
         """
         find the lowest common ancestors of n1 and n2
         """
-        n1_chain = n1.ancestors.append(n1)
+        if n1 is None or n2 is None:
+            return None
+        n1_chain = n1.ancestors
+        n1_chain.append(n1)
         tmp = n2
         while tmp not in n1_chain:
             tmp = tmp.parent

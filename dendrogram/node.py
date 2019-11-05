@@ -6,10 +6,10 @@ from model.data_point import DataPoint
 
 
 class Node(Cluster):
-    def __init__(self, parent):
+    def __init__(self):
         super().__init__()
         # parent node
-        self.parent: Union[Node, None] = parent
+        self._par: Union[Node, None] = None
         # left child node
         self._lc: Union[Node, None] = None
         # right child node
@@ -18,14 +18,75 @@ class Node(Cluster):
         self._descendants: List[Node] = []
 
     @property
+    def _disconnected(self):
+        return self._par is None
+
+    def _left_connect(self, child):
+        """
+        :type child: Node
+        """
+        assert child._disconnected
+        assert self._lc is None
+        self._lc = child
+        child._par = self
+
+    def _right_connect(self, child):
+        """
+        :type child: Node
+        """
+        if not child._disconnected:
+            print()
+        assert child._disconnected
+        assert self._rc is None
+        self._rc = child
+        child._par = self
+
+    def _disconnect(self):
+        if self._par is None:
+            return
+        if self._par._lc == self:
+            self._par._lc = None
+            self._par = None
+        elif self._par._rc == self:
+            self._par._rc = None
+            self._par = None
+
+    def _disconnect_left(self):
+        if self._lc is not None:
+            self._lc._disconnect()
+
+    def _disconnect_right(self):
+        if self._rc is not None:
+            self._rc._disconnect()
+
+    @property
+    def parent(self):
+        return self._par
+
+    @parent.setter
+    def parent(self, other):
+        raise Exception("parent can not be changed")
+
+    @property
     def lchild(self):
         return self._lc
 
     @lchild.setter
     def lchild(self, left_child):
+        """
+        :type left_child: Node
+        """
         if left_child is None:
-            raise Exception("left child None")
-        self._lc = left_child
+            self._disconnect_left()
+            parent = self._par
+            rchild = self._rc
+            self._disconnect()
+            self._disconnect_right()
+            parent._right_connect(rchild)
+        else:
+            left_child._disconnect()
+            self._disconnect_left()
+            self._left_connect(left_child)
         self._update_cache()
 
     @property
@@ -34,9 +95,20 @@ class Node(Cluster):
 
     @rchild.setter
     def rchild(self, right_child):
+        """
+        :type right_child: Node
+        """
         if right_child is None:
-            raise Exception("right child None")
-        self._rc = right_child
+            self._disconnect_right()
+            parent = self._par
+            lchild = self._lc
+            self._disconnect()
+            self._disconnect_left()
+            parent._right_connect(lchild)
+        else:
+            right_child._disconnect()
+            self._disconnect_right()
+            self._right_connect(right_child)
         self._update_cache()
 
     def _update_cache(self):
@@ -97,13 +169,50 @@ class Node(Cluster):
     def descendants(self) -> List:
         return list(self._descendants)
 
+    @property
+    def sibling(self):
+        if self.parent is None:
+            return None
+        if self == self.parent.lchild:
+            return self.parent.rchild
+        if self == self.parent.rchild:
+            return self.parent.lchild
+
+    @property
+    def aunt(self):
+        if self.parent is None:
+            return None
+        return self.parent.sibling
+
+    def replace_child(self, replace, new) -> bool:
+        """
+        :type replace: Node
+        :type new: Node
+        """
+        parent = new._par
+        if self._lc == replace:
+            self._disconnect_left()
+            new._disconnect()
+            self._left_connect(new)
+            if parent is not None:
+                parent.lchild = None
+        elif self._rc == replace:
+            self._disconnect_right()
+            new._disconnect()
+            self._right_connect(new)
+            if parent is not None:
+                parent.rchild = None
+        else:
+            return False
+        return True
+
     def __str__(self):
         return str(self.data_points)
 
 
 class Leaf(Node):
-    def __init__(self, data_point: DataPoint, parent: Union[Node, None]):
-        super().__init__(parent)
+    def __init__(self, data_point: DataPoint):
+        super().__init__()
         self.data_points = [data_point]
 
     @property

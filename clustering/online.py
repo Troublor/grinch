@@ -8,14 +8,4 @@ class OnlineHAC(HAC):
     def insert(self, data_point: DataPoint):
         leaf = Leaf(data_point, parent=None)
         sibling = self.nearest_neighbour(leaf)
-        if sibling is None:
-            self.dendrogram = leaf
-        elif sibling.parent is None:
-            root = Node(parent=None)
-            root.lchild = sibling
-            root.rchild = leaf
-            self.dendrogram = root
-        else:
-            parent = Node(parent=sibling.parent)
-            parent.lchild = sibling
-            parent.rchild = leaf
+        self.make_sib(sibling, leaf)

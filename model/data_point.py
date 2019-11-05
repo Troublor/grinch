@@ -9,4 +9,7 @@ class DataPoint:
 class TrivialDataPoint(DataPoint, float):
 
     def pairwise_similarity(self, other) -> float:
-        return math.fabs(self - other)
+        if self * other > 0:
+            if math.fabs(self - other) <= 1:
+                return 2
+        return 1
