@@ -3,6 +3,7 @@ import sys
 from typing import Union, List
 
 from dendrogram.node import Node, Leaf
+from dendrogram.tree import lca, swap
 from model.cluster import Cluster
 from model.data_point import DataPoint
 from .rotation import RotationHAC
@@ -25,13 +26,13 @@ class Grinch(RotationHAC):
         l = self.constr_nearest_neighbour(v, v.descendants)
         if v is None or l is None:
             print()
-        v_prime = self.lca(v, l)
+        v_prime = lca(v, l)
         st = v
         while v != v_prime and l != v_prime and v.sibling != l:
             if self.f(v, l) >= max(self.f(v, v.sibling), self.f(l, l.sibling)):
                 z = v.sibling
                 v = self.make_sib(v, l)
-                self.restruct(z, self.lca(z, v))
+                self.restruct(z, lca(z, v))
                 break
             if self.f(v, l) < self.f(l, l.sibling):
                 l = l.parent
@@ -60,21 +61,5 @@ class Grinch(RotationHAC):
                     max_value = temp
                     m = a
             if self.f(z, z.sibling) < self.f(z, m):
-                self.swap(z.sibling, m)
+                swap(z.sibling, m)
             z = z.parent
-
-    def constr_nearest_neighbour(self, x: Node, exclude: List[Cluster]) -> Union[Node, None]:
-        # search among leaves
-        if self.dendrogram.root is None:
-            return None
-        descendants = self.dendrogram.descendants
-        max_value = -sys.float_info.max
-        nearest = None
-        for n in descendants:
-            if n in exclude or not isinstance(n, Leaf):
-                continue
-            tmp = self.f(n, x)
-            if self.f(n, x) >= max_value:
-                max_value = tmp
-                nearest = n
-        return nearest

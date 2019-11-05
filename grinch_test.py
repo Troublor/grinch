@@ -19,7 +19,7 @@ class MyTestCase(unittest.TestCase):
         for d in data:
             print("insert", d)
             clustering.insert(d)
-        clustering.print_tree()
+        clustering.dendrogram.print()
         self.assertTrue(True)
 
 

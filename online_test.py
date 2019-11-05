@@ -19,7 +19,7 @@ class MyTestCase(unittest.TestCase):
         clustering = OnlineHAC(single_linkage)
         for d in data:
             clustering.insert(d)
-            clustering.print_tree()
+            clustering.dendrogram.print()
         self.assertTrue(True)
 
 
