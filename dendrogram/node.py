@@ -83,9 +83,9 @@ class Node(Cluster):
         :type left_child: Node
         """
         if left_child is None:
-            self._disconnect_left()
             parent = self._par
             rchild = self._rc
+            self._disconnect_left()
             self._disconnect()
             self._disconnect_right()
             parent._right_connect(rchild)
@@ -105,9 +105,9 @@ class Node(Cluster):
         :type right_child: Node
         """
         if right_child is None:
-            self._disconnect_right()
             parent = self._par
             lchild = self._lc
+            self._disconnect_right()
             self._disconnect()
             self._disconnect_left()
             parent._right_connect(lchild)
