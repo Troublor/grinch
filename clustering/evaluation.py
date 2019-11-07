@@ -12,7 +12,7 @@ def dendrogram_purity(ground_truth: List[GroundTruthCluster], dendrogram: Tree) 
     total = 0
     for (dp1, dp2) in p_star_set:
         for cluster in ground_truth:
-            if dp1 in cluster:
+            if dp1.data_point in cluster:
                 total += pur(lca(dp1, dp2).lvs, cluster)
     return total / len(p_star_set)
 
