@@ -52,13 +52,16 @@ class Grinch(RotationHAC):
             x = Leaf(data_point)
         sibling = self.nearest_neighbour(x)
         new_node = self.make_sib(sibling, x)
-        if x.data_point == 2:
-            self.dendrogram.print()
+        print("after insertion")
+        self.dendrogram.print()
         while x.sibling is not None and x.aunt is not None and \
                 self.get_similarity(x, x.sibling) < self.get_similarity(x.aunt, x.sibling):
             if self._capping and (self._capping_height < 0 or x.height > self._capping_height):
                 break
+            print("rotation happens")
             swap(x, x.aunt)
+            print("after rotation")
+            self.dendrogram.print()
         p = x.parent
         if self._single_nn_search:
             self._k_nn_leaves = self.k_nn_search(x, k=self._k_nn)
@@ -79,14 +82,18 @@ class Grinch(RotationHAC):
         v_prime = lca(v, l)
         st = v
         while v != v_prime and l != v_prime and v.sibling != l:
-            print("graft")
             v_l = self.get_similarity(v, l)
             v_v_s = self.get_similarity(v, v.sibling)
             l_l_s = self.get_similarity(l, l.sibling)
             if v_l >= max(v_v_s, l_l_s):
-                z = v.sibling
+                print("graft happens")
                 v = self.make_sib(v, l)
+                z = v.sibling
+                print("after graft")
+                self.dendrogram.print()
                 self.restruct(z, lca(z, v))
+                print("after restruct")
+                self.dendrogram.print()
                 break
             if self._single_elimination and v_l < l_l_s and v_l < v_v_s:
                 break
@@ -104,6 +111,8 @@ class Grinch(RotationHAC):
     def restruct(self, z: Node, r: Node):
         while z != r:
             a_s = []
+            if r is None:
+                print()
             for n in r.ancestors:
                 if n.sibling is not None:
                     a_s.append(n.sibling)

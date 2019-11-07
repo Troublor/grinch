@@ -41,10 +41,7 @@ class Graph(object):
         if len(tmp) == 0:
             return None
         v = tmp[random.randint(0, len(tmp) - 1)]
-        neighbors = v.similar_neighbors(1, exclude)
-        if len(neighbors) == 0:
-            return v
-        while self.get_similarity(v, node) < self.get_similarity(v, neighbors[0]):
+        while True:
             max_value = -sys.float_info.max
             nearest = None
             for neighbor in v.similar_neighbors(len(v.neighbors), exclude):
@@ -52,10 +49,9 @@ class Graph(object):
                 if sim > max_value:
                     max_value = sim
                     nearest = neighbor
-            v = nearest
-            neighbors = v.similar_neighbors(1, exclude)
-            if len(neighbors) == 0:
+            if max_value <= self.get_similarity(v, node):
                 break
+            v = nearest
         return v
 
     def get_similarity(self, n1: Union[dendrogram.Node, Node], n2: Union[dendrogram.Node, Node]) -> float:
