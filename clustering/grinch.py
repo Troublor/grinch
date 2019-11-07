@@ -52,6 +52,8 @@ class Grinch(RotationHAC):
             x = Leaf(data_point)
         sibling = self.nearest_neighbour(x)
         new_node = self.make_sib(sibling, x)
+        if x.data_point == 2:
+            self.dendrogram.print()
         while x.sibling is not None and x.aunt is not None and \
                 self.get_similarity(x, x.sibling) < self.get_similarity(x.aunt, x.sibling):
             if self._capping and (self._capping_height < 0 or x.height > self._capping_height):
@@ -81,16 +83,16 @@ class Grinch(RotationHAC):
             v_l = self.get_similarity(v, l)
             v_v_s = self.get_similarity(v, v.sibling)
             l_l_s = self.get_similarity(l, l.sibling)
-            if v_l > max(v_v_s, l_l_s):
+            if v_l >= max(v_v_s, l_l_s):
                 z = v.sibling
                 v = self.make_sib(v, l)
                 self.restruct(z, lca(z, v))
                 break
             if self._single_elimination and v_l < l_l_s and v_l < v_v_s:
                 break
-            if v_l <= l_l_s:
+            if v_l < l_l_s:
                 l = l.parent
-            if v_l <= v_v_s:
+            if v_l < v_v_s:
                 v = v.parent
             if v.ancestor_of(l) or l.ancestor_of(v):
                 break
