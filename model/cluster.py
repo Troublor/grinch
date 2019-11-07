@@ -29,6 +29,9 @@ class Cluster(object):
         else:
             raise StopIteration()
 
+    def __lt__(self, other):
+        return 0
+
     @property
     def data_points(self) -> List[DataPoint]:
         """

@@ -83,9 +83,9 @@ class Node(Cluster):
         :type left_child: Node
         """
         if left_child is None:
-            self._disconnect_left()
             parent = self._par
             rchild = self._rc
+            self._disconnect_left()
             self._disconnect()
             self._disconnect_right()
             parent._right_connect(rchild)
@@ -105,9 +105,9 @@ class Node(Cluster):
         :type right_child: Node
         """
         if right_child is None:
-            self._disconnect_right()
             parent = self._par
             lchild = self._lc
+            self._disconnect_right()
             self._disconnect()
             self._disconnect_left()
             parent._right_connect(lchild)
@@ -146,7 +146,13 @@ class Node(Cluster):
             self.data_points = tmp1
             self._descendants = tmp2
         # update the height of the node
-        self._height = max(self._lc._height, self._rc._height) + 1
+        l_height = 0
+        r_height = 0
+        if self._lc is not None:
+            l_height = self._lc.height
+        if self._rc is not None:
+            r_height = self._rc.height
+        self._height = max(l_height, r_height) + 1
         # after updating itself cluster cache, its parent should be notified
         if self.parent is not None:
             self.parent._update_cache()
