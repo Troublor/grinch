@@ -57,16 +57,20 @@ class HAC:
             return root
         else:
             if merge_node.parent is not None:
-                if merge_node == merge_node.parent.lchild:
-                    merge_node.parent.lchild = None
-                elif merge_node == merge_node.parent.rchild:
-                    merge_node.parent.rchild = None
+                if merge_node.parent.is_left_child(merge_node):
+                    merge_node.parent.lose_left_child()
+                elif merge_node.parent.is_right_child(merge_node):
+                    merge_node.parent.lose_right_child()
+                else:
+                    raise Exception("tree link inconsistent")
             p_parent = merge_point.parent
             parent = Node()
             if p_parent.is_left_child(merge_point):
                 p_parent.lchild = parent
             elif p_parent.is_right_child(merge_point):
                 p_parent.rchild = parent
+            else:
+                raise Exception("tree link inconsistent")
             parent.lchild = merge_point
             parent.rchild = merge_node
             return parent

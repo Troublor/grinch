@@ -36,8 +36,6 @@ class Node(Cluster):
         """
         :type child: Node
         """
-        if not child._disconnected:
-            print()
         assert child._disconnected
         assert self._rc is None
         self._rc = child
@@ -86,9 +84,13 @@ class Node(Cluster):
             parent = self._par
             rchild = self._rc
             self._disconnect_left()
-            self._disconnect()
             self._disconnect_right()
-            parent._right_connect(rchild)
+            if parent.is_right_child(self):
+                self._disconnect()
+                parent._right_connect(rchild)
+            elif parent.is_left_child(self):
+                self._disconnect()
+                parent._left_connect(rchild)
         else:
             left_child._disconnect()
             self._disconnect_left()
@@ -108,9 +110,13 @@ class Node(Cluster):
             parent = self._par
             lchild = self._lc
             self._disconnect_right()
-            self._disconnect()
             self._disconnect_left()
-            parent._right_connect(lchild)
+            if parent.is_right_child(self):
+                self._disconnect()
+                parent._right_connect(lchild)
+            elif parent.is_left_child(self):
+                self._disconnect()
+                parent._left_connect(lchild)
         else:
             right_child._disconnect()
             self._disconnect_right()
@@ -156,6 +162,22 @@ class Node(Cluster):
         # after updating itself cluster cache, its parent should be notified
         if self.parent is not None:
             self.parent._update_cache()
+
+    def lose_left_child(self):
+        """
+        :return: :type Node
+        """
+        lchild = self.lchild
+        self.lchild = None
+        return lchild
+
+    def lose_right_child(self):
+        """
+        :return: :type Node
+        """
+        rchild = self.rchild
+        self.rchild = None
+        return rchild
 
     def ancestor_of(self, node) -> bool:
         """

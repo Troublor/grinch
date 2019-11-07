@@ -40,7 +40,7 @@ class MyTestCase(unittest.TestCase):
         for d in data:
             print("insert", d)
             clustering.insert(d)
-        clustering.dendrogram.print()
+            clustering.dendrogram.print()
         c1 = GroundTruthCluster([data[0], data[2], data[5]])
         c2 = GroundTruthCluster([data[1], data[3], data[4]])
         self.assertTrue(dendrogram_purity([c1, c2], clustering.dendrogram) == 1)
