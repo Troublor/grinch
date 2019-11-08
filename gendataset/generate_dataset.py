@@ -31,6 +31,8 @@ class DataGeneration(object):
                                                                                        n_point_each_cluster))
         print("size of synthesized dataset = {} * {}".format(len(gen_dataset), len(gen_dataset[0])))
 
+        # return index, gen_dataset
+
         # shuffle dataset
         s_index, s_dataset = self.shuffle_dataset(index, gen_dataset)
         return s_index, s_dataset

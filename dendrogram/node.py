@@ -19,6 +19,8 @@ class Node(Cluster):
         # node height from deepest leaf
         self._height = 1
 
+        self.updated = True
+
     @property
     def _disconnected(self):
         return self._par is None
@@ -128,6 +130,7 @@ class Node(Cluster):
         update the cluster cache
         """
         # update self cluster cache and descendants cache
+        self.updated = True
         if self._lc is None and self._rc is None:
             return
         if self._lc is not None:
@@ -183,11 +186,7 @@ class Node(Cluster):
         """
         check whether self is ancestor of node
         """
-        if node.parent == self:
-            return True
-        if node.parent is None:
-            return False
-        return self.ancestor_of(node.parent)
+        return node in self.descendants
 
     @property
     def ancestors(self) -> List:

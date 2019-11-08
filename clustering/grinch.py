@@ -1,7 +1,7 @@
 import math
 import sys
 import time
-from typing import Union, List, Callable
+from typing import Union, List, Callable, Dict
 
 import nsw
 from dendrogram.node import Node, Leaf
@@ -17,6 +17,14 @@ class Grinch(RotationHAC):
                  single_elimination=False, single_nn_search=False, k_nn=-1, navigable_small_world_graphs=False,
                  k_nsw=-1, debug=False):
         super().__init__(f)
+
+        self.rotation_count = 0
+        self.graft_count = 0
+        self.restruct_count = 0
+        self.similarity_reused_count = 0
+
+        self._similarity_table: Dict[Node, Dict[Node, float]] = {}
+
         self._debug = debug
         self._capping = capping
         if self._capping:
@@ -45,9 +53,23 @@ class Grinch(RotationHAC):
         if self._navigable_small_world_graphs:
             return self._nsw_graph.constr_nearest_neighbor(x, exclude=exclude)
         else:
-            return super().constr_nearest_neighbour(x, exclude)
+            # search among leaves
+            if self.dendrogram.root is None:
+                return None
+            descendants = self.dendrogram.descendants
+            max_value = -sys.float_info.max
+            nearest = None
+            for n in descendants:
+                if n in exclude or not isinstance(n, Leaf):
+                    continue
+                tmp = self.get_similarity(n, x)
+                if tmp >= max_value:
+                    max_value = tmp
+                    nearest = n
+            return nearest
 
     def insert(self, data_point: DataPoint):
+        g_start = time.time()
         if self._navigable_small_world_graphs:
             x = self._nsw_graph.add_data_point(data_point)
         else:
@@ -63,28 +85,39 @@ class Grinch(RotationHAC):
             self.dendrogram.root.sanity_check()
             print("after insertion")
             self.dendrogram.print()
+        print("rotation begins")
+        start = time.time()
         while x.sibling is not None and x.aunt is not None and \
                 self.get_similarity(x, x.sibling) < self.get_similarity(x.aunt, x.sibling):
-            # start = time.time()
+            end = time.time()
+            print("while condition check time:", end - start)
+            start = time.time()
             if self._capping and (self._capping_height < 0 or x.height > self._capping_height):
                 break
             if self._debug:
                 print("rotation happens")
                 self.dendrogram.root.sanity_check()
             swap(x, x.aunt)
+            self.rotation_count += 1
             if self._debug:
                 print("after rotation")
                 self.dendrogram.root.sanity_check()
                 self.dendrogram.print()
-            # end = time.time()
-            # print("rotation time:", end - start)
+            end = time.time()
+            print("rotation time:", end - start)
+            start = time.time()
         p = x.parent
         if self._single_nn_search:
             self._k_nn_leaves = self.k_nn_search(x, k=self._k_nn)
+        start = time.time()
         while p is not None:
             p = self.graft(p)
             if self._debug:
                 self.dendrogram.root.sanity_check()
+        end = time.time()
+        print("total graft time:", end - start)
+        g_end = time.time()
+        print("insert total time:", g_end - g_start)
 
     def graft(self, v: Node) -> Union[Node, None]:
         # start = time.time()
@@ -100,20 +133,30 @@ class Grinch(RotationHAC):
         # print("graft search neighbour time:", end - start)
         v_prime = lca(v, l)
         st = v
+        dead_lock_count = 0
+        total_similarity_time = 0
         while v != v_prime and l != v_prime and v.sibling != l:
+            dead_lock_count += 1
+            if dead_lock_count > 100:
+                print()
             if v.ancestor_of(l) or l.ancestor_of(v):
                 break
             if self._debug:
                 self.dendrogram.root.sanity_check()
                 l.sanity_check()
+            start = time.time()
             v_l = self.get_similarity(v, l)
             v_v_s = self.get_similarity(v, v.sibling)
             l_l_s = self.get_similarity(l, l.sibling)
-            if v_l >= max(v_v_s, l_l_s):
+            stop = time.time()
+            total_similarity_time += stop - start
+            if v_l > max(v_v_s, l_l_s):
+                graft_start = time.time()
                 if self._debug:
                     print("graft happens")
                 # start = time.time()
                 v = self.make_sib(v, l)
+                self.graft_count += 1
                 # end = time.time()
                 # print("graft time:", end - start)
                 if self._debug:
@@ -126,13 +169,21 @@ class Grinch(RotationHAC):
                 if self._debug:
                     print("after restruct")
                     self.dendrogram.print()
+                graft_end = time.time()
+                print("graft time:", graft_end - graft_start)
                 break
             if self._single_elimination and v_l < l_l_s and v_l < v_v_s:
                 break
-            if v_l < l_l_s:
+            changed = False
+            if v_l <= l_l_s:
                 l = l.parent
-            if v_l < v_v_s:
+                changed = True
+            if v_l <= v_v_s:
                 v = v.parent
+                changed = True
+            if not changed:
+                break
+        # print("total graft similarity time:", total_similarity_time)
         if v == st:
             return v_prime
         else:
@@ -141,7 +192,7 @@ class Grinch(RotationHAC):
     def restruct(self, z: Node, r: Node):
         while z != r:
             a_s = []
-            for n in r.ancestors:
+            for n in r.ancestors + [r]:
                 if n.sibling is not None:
                     a_s.append(n.sibling)
             if len(a_s) == 0:
@@ -155,7 +206,9 @@ class Grinch(RotationHAC):
                     m = a
             if self.get_similarity(z, z.sibling) < self.get_similarity(z, m):
                 # start = time.time()
+                print("restruct happens")
                 swap(z.sibling, m)
+                self.restruct_count += 1
                 # end = time.time()
                 # print("restruct time:", end - start)
                 if self._debug:
@@ -191,7 +244,23 @@ class Grinch(RotationHAC):
         return output
 
     def get_similarity(self, n1: Node, n2: Node) -> float:
+        if n1 in self._similarity_table and n2 in self._similarity_table[n1] and not n1.updated and not n2.updated:
+            # print("similarity reused")
+            self.similarity_reused_count += 1
+            return self._similarity_table[n1][n2]
+        # print("similarity update")
         if self._navigable_small_world_graphs:
-            return self._nsw_graph.get_similarity(n1, n2)
+            sim = self._nsw_graph.get_similarity(n1, n2)
         else:
-            return self.f(n1, n2)
+            sim = self.f(n1, n2)
+        if n1 not in self._similarity_table:
+            self._similarity_table[n1] = {n2: sim}
+        else:
+            self._similarity_table[n1][n2] = sim
+        if n2 not in self._similarity_table:
+            self._similarity_table[n2] = {n1: sim}
+        else:
+            self._similarity_table[n2][n1] = sim
+        n1.updated = False
+        n2.updated = False
+        return sim
