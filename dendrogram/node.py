@@ -235,7 +235,23 @@ class Node(Cluster):
         return self._rc == child
 
     def __str__(self):
-        return str(self.data_points)
+        return list(map(lambda item: str(item.id), self.data_points))
+
+    def sanity_check(self):
+        assert len(self.data_points) > 0
+        if not isinstance(self, Leaf):
+            assert self.lchild is not None
+            assert self.lchild.parent == self
+            self.lchild.sanity_check()
+            assert self.rchild is not None
+            assert self.rchild.parent == self
+            self.rchild.sanity_check()
+        if self.parent is not None:
+            assert self.parent.is_right_child(self) or self.parent.is_left_child(self)
+
+    @property
+    def string(self):
+        return list(map(lambda item: str(item.id), self.data_points))
 
 
 class Leaf(Node):

@@ -28,6 +28,8 @@ class Tree(Node):
 
     def print(self):
         tree = treelib.Tree()
+        if self.root is not None:
+            print("number of leaves:", len(self.root.lvs))
 
         def traverse_tree(root: Node, parent: Union[Node, None]):
             tree.create_node("node", root, parent=parent, data=root)
@@ -38,7 +40,7 @@ class Tree(Node):
 
         traverse_tree(self.root, None)
 
-        tree.show(data_property="data_points")
+        tree.show(data_property="string")
 
 
 def lca(n1: Union[Node, None], n2: Union[Node, None]) -> Union[Node, None]:
@@ -67,11 +69,11 @@ def swap(s: Node, a: Node):
             a_par.lchild = s
         elif a_par.rchild == a:
             s_par.lchild = a
-            a_par.lchild = s
+            a_par.rchild = s
     elif s_par.rchild == s:
         if a_par.lchild == a:
             s_par.rchild = a
             a_par.lchild = s
         elif a_par.rchild == a:
             s_par.rchild = a
-            a_par.lchild = s
+            a_par.rchild = s

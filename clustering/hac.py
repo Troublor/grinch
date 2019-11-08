@@ -34,7 +34,7 @@ class HAC:
             if n in exclude or not isinstance(n, Leaf):
                 continue
             tmp = self.f(n, x)
-            if self.f(n, x) >= max_value:
+            if tmp >= max_value:
                 max_value = tmp
                 nearest = n
         return nearest
