@@ -11,25 +11,26 @@ from model.cluster import GroundTruthCluster, Cluster
 from model.data_point import DataPoint, BinaryDataPoint
 
 
+def is_zero_vector(vector: List[int]) -> bool:
+    for e in vector:
+        if e != 0:
+            return False
+    else:
+        return True
+
+
 def data_wrapper(dataset, n_cluster: int) -> Tuple[List[DataPoint], List[GroundTruthCluster]]:
-    count = [0, 0, 0]
+    count = [0 for i in range(n_cluster)]
     cc = [[] for i in range(n_cluster)]
     data_stream = []
     for index, cluster in enumerate(dataset[0]):
+        vector = dataset[1][index]
+        if is_zero_vector(vector):
+            continue
         count[cluster] += 1
-        if cluster == 0:
-            dp = BinaryDataPoint(dataset[1][index], "-" + str(count[cluster]))
-            cc[cluster].append(dp)
-            data_stream.append(dp)
-        elif cluster == 1:
-            dp = BinaryDataPoint(dataset[1][index], "+" + str(count[cluster]))
-            cc[cluster].append(dp)
-            data_stream.append(dp)
-        elif cluster == 2:
-            dp = BinaryDataPoint(dataset[1][index], str(count[cluster]))
-            cc[cluster].append(dp)
-            data_stream.append(dp)
-
+        dp = BinaryDataPoint(dataset[1][index], str(cluster) + "-" + str(count[cluster]))
+        cc[cluster].append(dp)
+        data_stream.append(dp)
     clusters = []
     for c in cc:
         clusters.append(GroundTruthCluster(c))
@@ -47,7 +48,7 @@ def vector_cosine(v1: List[int], v2: List[int]):
         b2 += v2[i] ** 2
     d = (math.sqrt(a2) * math.sqrt(b2))
     if d == 0:
-        return -sys.float_info.max
+        return -sys.float_info.max + 1
     return ab / d
 
 
@@ -61,14 +62,21 @@ def cosine_similarity(c1: Cluster, c2: Cluster) -> float:
         assert isinstance(dp, BinaryDataPoint)
         total2 += np.array(dp.vector)
     return vector_cosine(total1, total2)
+    # return vector_cosine(c1.cache.tolist(), c2.cache.tolist())
 
 
 gen = DataGeneration()
-output = gen.gen_random_dataset(n_cluster=2, n_point_each_cluster=20, n_dim_datapoint=100)
-data_stream, ground_truth = data_wrapper(output, 3)
+n_cluster = 4
+n_point_each_cluster = 50
+n_dim_datapoint = 2500
+output = gen.gen_random_dataset(n_cluster=n_cluster, n_point_each_cluster=n_point_each_cluster, n_dim_datapoint=n_dim_datapoint)
+data_stream, ground_truth = data_wrapper(output, n_cluster)
 
-grinch = Grinch(cosine_similarity, debug=False)
+grinch = Grinch(cosine_similarity, debug=False, navigable_small_world_graphs=False, k_nsw=30)
+count = 0
 for dp in data_stream:
+    count += 1
+    print("insert data point", count)
     grinch.insert(dp)
 grinch.dendrogram.print()
 print(dendrogram_purity(ground_truth, grinch.dendrogram))

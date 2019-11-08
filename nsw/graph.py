@@ -55,10 +55,9 @@ class Graph(object):
         return v
 
     def get_similarity(self, n1: Union[dendrogram.Node, Node], n2: Union[dendrogram.Node, Node]) -> float:
+        t = None
         if n1 in self._nodes and n2 in self._nodes:
             t = n1.similarity(n2)
-        else:
-            t = self.f(n1, n2)
         if t is None:
-            print()
+            t = self.f(n1, n2)
         return t

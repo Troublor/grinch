@@ -27,7 +27,7 @@ class HAC:
         # search among leaves
         if self.dendrogram.root is None:
             return None
-        descendants = self.dendrogram.descendants
+        descendants = self.dendrogram.lvs
         max_value = -sys.float_info.max
         nearest = None
         for n in descendants:
