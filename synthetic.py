@@ -56,7 +56,8 @@ output = gen.gen_random_dataset(n_cluster=n_cluster, n_point_each_cluster=n_poin
                                 n_dim_datapoint=n_dim_datapoint)
 data_stream, ground_truth = data_wrapper(output, n_cluster)
 
-grinch = Grinch(cosine_similarity, debug=False, single_nn_search=False, k_nn=25, single_elimination=False, capping=False, capping_height=50)
+grinch = Grinch(cosine_similarity, debug=False, single_nn_search=True, k_nn=25, single_elimination=True,
+                capping=True, capping_height=100)
 count = 0
 start = time.time()
 for dp in data_stream:
@@ -68,6 +69,7 @@ end = time.time()
 print("rotation:", grinch.rotation_count)
 print("graft:", grinch.graft_count)
 print("restruct:", grinch.restruct_count)
+print("similarity:", grinch.similarity_count)
 print("reuse:", grinch.similarity_reused_count)
-print("time:", end-start)
-print(dendrogram_purity(ground_truth, grinch.dendrogram))
+print("time:", end - start)
+print("dp:", dendrogram_purity(ground_truth, grinch.dendrogram))
