@@ -3,7 +3,7 @@ from typing import List
 
 
 class DataPoint:
-    def __init__(self, id: str = None):
+    def __init__(self, id):
         self.id = id
 
     def __str__(self):
@@ -11,6 +11,9 @@ class DataPoint:
             return self.id
         else:
             return str(self)
+
+    def __eq__(self, other):
+        return self.id == other.id
 
     def pairwise_similarity(self, other) -> float:
         pass
@@ -26,9 +29,6 @@ class TrivialDataPoint(DataPoint, float):
 
 
 class BinaryDataPoint(DataPoint):
-    def __init__(self, vector: List[int], id: str = None):
+    def __init__(self, vector: List[int], id):
         super().__init__(id)
         self.vector = vector
-
-    def __eq__(self, other):
-        return self.vector == other.vector
