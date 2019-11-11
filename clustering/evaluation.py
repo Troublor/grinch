@@ -8,7 +8,19 @@ from model.data_point import DataPoint
 
 
 def dendrogram_purity(ground_truth: List[GroundTruthCluster], dendrogram: Tree) -> float:
-    p_star_set = p_star(ground_truth, dendrogram)
+    dps = [leaf.data_point for leaf in dendrogram.lvs]
+    partial_ground_truth = []
+    for cluster in ground_truth:
+        tmp = []
+        for dp in cluster:
+            if dp in dps:
+                tmp.append(dp)
+        partial_ground_truth.append(GroundTruthCluster(tmp))
+
+    p_star_set = p_star(partial_ground_truth, dendrogram)
+    if len(p_star_set) == 0:
+        print("why")
+        return 1.0
     total = 0
     for (dp1, dp2) in p_star_set:
         for cluster in ground_truth:

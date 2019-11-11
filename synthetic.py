@@ -1,3 +1,4 @@
+import copy
 import math
 import sys
 import time
@@ -13,6 +14,7 @@ from gendataset.generate_dataset import DataGeneration
 from gendataset.shuffle import *
 from model.cluster import GroundTruthCluster, Cluster
 from model.data_point import DataPoint, BinaryDataPoint
+from monitor.dendrogram_purity import DpMonitor
 
 
 def is_zero_vector(vector: List[int]) -> bool:
@@ -51,24 +53,27 @@ def cosine_similarity(c1: Cluster, c2: Cluster) -> float:
     return vector_cosine(np.sum(v1, axis=0), np.sum(v2, axis=0))
 
 
-gen = DataGeneration(shuffle=sorted_shuffle)
-n_cluster = 2
+gen = DataGeneration(shuffle=random_shuffle)
+n_cluster = 20
 n_point_each_cluster = 25
-n_dim_datapoint = 10000
+n_dim_datapoint = 2500
 output = gen.gen_random_dataset(n_cluster=n_cluster, n_point_each_cluster=n_point_each_cluster,
                                 n_dim_datapoint=n_dim_datapoint)
 data_stream, ground_truth = data_wrapper(output, n_cluster)
 
-# clustering = Grinch(cosine_similarity, debug=False, single_nn_search=False, k_nn=25, single_elimination=False,
-#                 capping=False, capping_height=100)
+clustering = Grinch(cosine_similarity, debug=False, single_nn_search=False, k_nn=25, single_elimination=False,
+                capping=False, capping_height=100)
 # clustering = OnlineHAC(cosine_similarity)
-clustering = RotationHAC(cosine_similarity)
+# clustering = RotationHAC(cosine_similarity)
+monitor = DpMonitor(n_data_points=len(data_stream), n_workers=8, ground_truth=ground_truth)
 count = 0
 start = time.time()
 for dp in data_stream:
-    count += 1
-    # print("insert data point", count)
+    print("insert data point", count)
     clustering.insert(dp)
+    cp = copy.deepcopy(clustering.dendrogram)
+    monitor.feed(count, cp)
+    count += 1
 clustering.dendrogram.print()
 end = time.time()
 # print("rotation:", grinch.rotation_count)
@@ -77,4 +82,4 @@ end = time.time()
 # print("similarity:", grinch.similarity_count)
 # print("reuse:", grinch.similarity_reused_count)
 print("time:", end - start)
-print("dp:", dendrogram_purity(ground_truth, clustering.dendrogram))
+print("dp: ", dendrogram_purity(ground_truth, clustering.dendrogram))

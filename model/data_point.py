@@ -29,3 +29,6 @@ class BinaryDataPoint(DataPoint):
     def __init__(self, vector: List[int], id: str = None):
         super().__init__(id)
         self.vector = vector
+
+    def __eq__(self, other):
+        return self.vector == other.vector
