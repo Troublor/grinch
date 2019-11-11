@@ -133,3 +133,5 @@ dmypy.json
 *.iml
 out
 gen
+/nohup.out
+/experiment/
