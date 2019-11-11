@@ -93,11 +93,12 @@ class Node(Cluster):
             elif parent.is_left_child(self):
                 self._disconnect()
                 parent._left_connect(rchild)
+            parent._update_cache()
         else:
             left_child._disconnect()
             self._disconnect_left()
             self._left_connect(left_child)
-        self._update_cache()
+            self._update_cache()
 
     @property
     def rchild(self):
@@ -119,11 +120,12 @@ class Node(Cluster):
             elif parent.is_left_child(self):
                 self._disconnect()
                 parent._left_connect(lchild)
+            parent._update_cache()
         else:
             right_child._disconnect()
             self._disconnect_right()
             self._right_connect(right_child)
-        self._update_cache()
+            self._update_cache()
 
     def _update_cache(self):
         """
@@ -132,6 +134,8 @@ class Node(Cluster):
         # update self cluster cache and descendants cache
         self.updated = True
         if self._lc is None and self._rc is None:
+            if self.parent is not None:
+                self.parent._update_cache()
             return
         if self._lc is not None:
             # update self cluster cache and descendants cache
@@ -206,6 +210,15 @@ class Node(Cluster):
 
     @property
     def lvs(self):
+        if len(self._descendants) == 0:
+            if hasattr(self, 'root'):
+                return []
+            else:
+                if not isinstance(self, Leaf):
+                    assert False
+                else:
+                    return [self]
+
         tmp = []
         for n in self._descendants:
             if isinstance(n, Leaf):
