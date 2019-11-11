@@ -34,9 +34,9 @@ class DataGeneration(object):
         assert n_cluster * n_point_each_cluster == count
         assert n_dim_datapoint == len(clusters[0][0])
 
-        print("n_cluster = {}\nn_dim_datapoint = {}\nn_point_each_cluster = {}".format(n_cluster, n_dim_datapoint,
-                                                                                       n_point_each_cluster))
-        print("size of synthesized dataset = {} * {}".format(count, len(clusters[0][0])))
+        # print("n_cluster = {}\nn_dim_datapoint = {}\nn_point_each_cluster = {}".format(n_cluster, n_dim_datapoint,
+        #                                                                                n_point_each_cluster))
+        # print("size of synthesized dataset = {} * {}".format(count, len(clusters[0][0])))
 
         if self.shuffle is not None:
             return self.shuffle(clusters)
