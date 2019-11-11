@@ -60,7 +60,7 @@ def param_print(*params):
 
 stdout = sys.stdout
 with open("experiment/synthetic/grinch.txt", "w") as file:
-    sys.stdout = file
+    sys.stdout = stdout
 
     total_time = 0
     n = 5
@@ -68,7 +68,7 @@ with open("experiment/synthetic/grinch.txt", "w") as file:
         gen = DataGeneration(shuffle=random_shuffle)
         n_cluster = 20
         n_point_each_cluster = 25
-        n_dim_datapoint = 10000
+        n_dim_datapoint = 2500
         param_print("n_cluster", "n_point_each_cluster", "n_dim_datapoint")
 
         single_nn_search = False
@@ -94,14 +94,19 @@ with open("experiment/synthetic/grinch.txt", "w") as file:
                             single_elimination=single_elimination,
                             capping=capping, capping_height=capping_height,
                             navigable_small_world_graphs=navigable_small_world_graphs, k_nsw=k_nsw)
+        print("grinch HAC")
         # clustering = OnlineHAC(cosine_similarity)
+        # print("online HAC")
         # clustering = RotationHAC(cosine_similarity)
+        # print("rotation HAC")
         # monitor = DpMonitor(n_data_points=len(data_stream), n_workers=8, ground_truth=ground_truth)
         count = 0
         start = time.time()
         for dp in data_stream:
             # print("insert data point", count)
+            a = len(clustering.dendrogram.lvs)
             clustering.insert(dp)
+            assert a + 1 == len(clustering.dendrogram.lvs)
             # cp = copy.deepcopy(clustering.dendrogram)
             # monitor.feed(count, cp)
             count += 1
@@ -114,6 +119,9 @@ with open("experiment/synthetic/grinch.txt", "w") as file:
         # print("reuse:", grinch.similarity_reused_count)
         print("clustering time:", end - start)
         total_time += end - start
+        for leaf in clustering.dendrogram.lvs:
+            assert leaf.data_point in data_stream
+        assert len(clustering.dendrogram.lvs) == len(data_stream)
         print("dendrogram purity: ", dendrogram_purity(ground_truth, clustering.dendrogram))
         print("=======================================================================================================")
     print("average time:", total_time / n)
