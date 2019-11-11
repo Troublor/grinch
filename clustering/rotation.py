@@ -1,5 +1,5 @@
 import sys
-from typing import List, Union
+from typing import List, Union, Callable, Dict
 
 from dendrogram.node import Node, Leaf
 from dendrogram.tree import swap
@@ -16,5 +16,5 @@ class RotationHAC(HAC):
         new_node = self.make_sib(sibling, leaf)
         for v in self.dendrogram.descendants:
             while v.sibling is not None and v.aunt is not None and \
-                    self.f(v, v.sibling) < self.f(v, v.aunt):
+                    self.get_similarity(v, v.sibling) < self.get_similarity(v, v.aunt):
                 swap(v.sibling, v.aunt)

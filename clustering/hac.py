@@ -1,5 +1,5 @@
 import sys
-from typing import Callable, Union, List
+from typing import Callable, Union, List, Dict
 
 from dendrogram.node import Node, Leaf
 from dendrogram.tree import Tree
@@ -13,6 +13,11 @@ class HAC:
         self.dendrogram: Tree = Tree()
         # the linkage function
         self.f: Callable[[Cluster, Cluster], float] = f
+
+        self.similarity_reused_count = 0
+        self.similarity_count = 0
+
+        self._similarity_table: Dict[Node, Dict[Node, float]] = {}
 
     def insert(self, data_point: DataPoint):
         pass
@@ -33,7 +38,7 @@ class HAC:
         for n in descendants:
             if n in exclude or not isinstance(n, Leaf):
                 continue
-            tmp = self.f(n, x)
+            tmp = self.get_similarity(n, x)
             if tmp >= max_value:
                 max_value = tmp
                 nearest = n
@@ -74,4 +79,24 @@ class HAC:
             parent.lchild = merge_point
             parent.rchild = merge_node
             return parent
+
+    def get_similarity(self, n1: Node, n2: Node) -> float:
+        self.similarity_count += 1
+        if n1 in self._similarity_table and n2 in self._similarity_table[n1] and not n1.updated and not n2.updated:
+            # print("similarity reused")
+            self.similarity_reused_count += 1
+            return self._similarity_table[n1][n2]
+        # print("similarity update")
+        sim = self.f(n1, n2)
+        if n1 not in self._similarity_table:
+            self._similarity_table[n1] = {n2: sim}
+        else:
+            self._similarity_table[n1][n2] = sim
+        if n2 not in self._similarity_table:
+            self._similarity_table[n2] = {n1: sim}
+        else:
+            self._similarity_table[n2][n1] = sim
+        n1.updated = False
+        n2.updated = False
+        return sim
 

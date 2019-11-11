@@ -1,4 +1,8 @@
+from collections import Callable
+from typing import Dict
+
 from dendrogram.node import Leaf, Node
+from model.cluster import Cluster
 from model.data_point import DataPoint
 from .hac import HAC
 
