@@ -1,3 +1,4 @@
+import copy
 import math
 import sys
 import time
@@ -8,6 +9,7 @@ from dendrogram.node import Node, Leaf
 from dendrogram.tree import lca, swap
 from model.cluster import Cluster
 from model.data_point import DataPoint
+from monitor.dendrogram_purity import DpMonitor
 from nsw.graph import Graph
 from .rotation import RotationHAC
 
@@ -15,8 +17,11 @@ from .rotation import RotationHAC
 class Grinch(RotationHAC):
     def __init__(self, f: Callable[[Cluster, Cluster], float], capping=False, capping_height=-1,
                  single_elimination=False, single_nn_search=False, k_nn=-1, navigable_small_world_graphs=False,
-                 k_nsw=-1, debug=False):
+                 k_nsw=-1, debug=False, monitor=None):
         super().__init__(f)
+
+        self.monitor: DpMonitor = monitor
+        self.data_point_count = 0
 
         self.rotation_count = 0
         self.graft_count = 0
@@ -111,6 +116,8 @@ class Grinch(RotationHAC):
         if self._single_nn_search:
             self._k_nn_leaves = self.k_nn_search(x, k=self._k_nn)
         start = time.time()
+        if self.monitor is not None:
+            self.monitor.feed(self.data_point_count, before=True, dendrogram=copy.deepcopy(self.dendrogram))
         while p is not None:
             p = self.graft(p)
             if self._debug:
@@ -119,6 +126,9 @@ class Grinch(RotationHAC):
         # print("total graft time:", end - start)
         g_end = time.time()
         # print("insert total time:", g_end - g_start)
+        if self.monitor is not None:
+            self.monitor.feed(self.data_point_count, before=False, dendrogram=copy.deepcopy(self.dendrogram))
+        self.data_point_count += 1
 
     def graft(self, v: Node) -> Union[Node, None]:
         # start = time.time()

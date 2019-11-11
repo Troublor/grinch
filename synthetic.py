@@ -60,15 +60,17 @@ def param_print(*params):
 
 stdout = sys.stdout
 with open("experiment/synthetic/grinch.txt", "w") as file:
-    sys.stdout = file
+    sys.stdout = stdout
 
     total_time = 0
-    n = 5
-    for i in range(n):
+    n_repeat = 1
+    n_workers = 16
+    plot_path = "experiment/graft_significance/graft.jpg"
+    for i in range(n_repeat):
         gen = DataGeneration(shuffle=random_shuffle)
-        n_cluster = 20
+        n_cluster = 5
         n_point_each_cluster = 25
-        n_dim_datapoint = 10000
+        n_dim_datapoint = 1000
         param_print("n_cluster", "n_point_each_cluster", "n_dim_datapoint")
 
         single_nn_search = False
@@ -90,20 +92,19 @@ with open("experiment/synthetic/grinch.txt", "w") as file:
                                         n_dim_datapoint=n_dim_datapoint)
         data_stream, ground_truth = data_wrapper(output, n_cluster)
 
+        monitor = DpMonitor(n_data_points=len(data_stream), n_workers=n_workers, ground_truth=ground_truth)
+
         clustering = Grinch(cosine_similarity, debug=False, single_nn_search=single_nn_search, k_nn=k_nn,
                             single_elimination=single_elimination,
                             capping=capping, capping_height=capping_height,
-                            navigable_small_world_graphs=navigable_small_world_graphs, k_nsw=k_nsw)
+                            navigable_small_world_graphs=navigable_small_world_graphs, k_nsw=k_nsw, monitor=monitor)
         # clustering = OnlineHAC(cosine_similarity)
         # clustering = RotationHAC(cosine_similarity)
-        # monitor = DpMonitor(n_data_points=len(data_stream), n_workers=8, ground_truth=ground_truth)
         count = 0
         start = time.time()
         for dp in data_stream:
-            # print("insert data point", count)
+            print("insert data point", count)
             clustering.insert(dp)
-            # cp = copy.deepcopy(clustering.dendrogram)
-            # monitor.feed(count, cp)
             count += 1
         # clustering.dendrogram.print()
         end = time.time()
@@ -115,6 +116,9 @@ with open("experiment/synthetic/grinch.txt", "w") as file:
         print("clustering time:", end - start)
         total_time += end - start
         print("dendrogram purity: ", dendrogram_purity(ground_truth, clustering.dendrogram))
+        monitor.join()
+        # monitor.show_plot()
+        monitor.save_plot(plot_path)
         print("=======================================================================================================")
-    print("average time:", total_time / n)
+    print("average time:", total_time / n_repeat)
 sys.stdout = stdout
