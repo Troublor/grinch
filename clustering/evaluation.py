@@ -45,7 +45,7 @@ def p_star(ground_truth: List[GroundTruthCluster], dendrogram: Tree) -> Set[Tupl
                     elif leaf.data_point == dp2:
                         leaf2 = leaf
                 if leaf1 is None or leaf2 is None:
-                    raise Exception("part of dendrogram tree is mising")
+                    raise Exception("part of dendrogram tree is missing")
                 out.add((leaf1, leaf2))
     return out
 

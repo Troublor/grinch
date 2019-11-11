@@ -2,3 +2,5 @@ numpy
 treelib
 sortedcontainers
 matplotlib
+imageio
+scipy
