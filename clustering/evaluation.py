@@ -19,7 +19,6 @@ def dendrogram_purity(ground_truth: List[GroundTruthCluster], dendrogram: Tree) 
 
     p_star_set = p_star(partial_ground_truth, dendrogram)
     if len(p_star_set) == 0:
-        print("why")
         return 1.0
     total = 0
     for (dp1, dp2) in p_star_set:

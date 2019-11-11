@@ -29,5 +29,4 @@ class DpMonitor:
         return index, dendrogram_purity(ground_truth, tree)
 
     def slave_callback(self, data: Tuple[int, float]):
-        print("get result", data)
         self.dp_over_time[data[0]] = data[1]
