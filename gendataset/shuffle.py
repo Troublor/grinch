@@ -1,0 +1,49 @@
+import random
+from typing import List, Tuple
+
+
+def round_robin(clusters: List[List[List[int]]]) -> Tuple[List[int], List[List[int]]]:
+    K = len(clusters)
+    c = [i for i in range(K)]
+    random.shuffle(c)
+    i = [0 for _ in range(K)]
+
+    count = 0
+    for cluster in clusters:
+        count += len(cluster)
+    data_stream = []
+    index = []
+    for j in range(count):
+        c_id = j % K
+        index.append(c_id)
+        data_stream.append(clusters[c[c_id]][i[c_id]])
+        i[c_id] += 1
+    return index, data_stream
+
+
+def sorted_shuffle(clusters: List[List[List[int]]]) -> Tuple[List[int], List[List[int]]]:
+    K = len(clusters)
+    c = [i for i in range(K)]
+    index = []
+    data_stream = []
+    for j in range(K):
+        index += [c[j] for _ in range(len(clusters[c[j]]))]
+        data_stream += clusters[c[j]]
+    return index, data_stream
+
+
+def random_shuffle(clusters: List[List[List[int]]]) -> Tuple[List[int], List[List[int]]]:
+    index = []
+    for i in range(len(clusters)):
+        index += [i for _ in range(len(clusters[i]))]
+    dataset = []
+    for cluster in clusters:
+        dataset += cluster
+    mapIndexPosition = list(zip(index, dataset))
+    random.shuffle(mapIndexPosition)
+    s_index, s_dataset = zip(*mapIndexPosition)
+
+    print("original index = {}".format(index))
+    print("shuffled index = {}".format(s_index))
+    # print("shuffled dataset = {}".format(s_dataset))
+    return s_index, s_dataset

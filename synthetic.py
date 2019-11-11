@@ -10,6 +10,7 @@ from clustering.grinch import Grinch
 from clustering.online import OnlineHAC
 from clustering.rotation import RotationHAC
 from gendataset.generate_dataset import DataGeneration
+from gendataset.shuffle import *
 from model.cluster import GroundTruthCluster, Cluster
 from model.data_point import DataPoint, BinaryDataPoint
 
@@ -50,8 +51,8 @@ def cosine_similarity(c1: Cluster, c2: Cluster) -> float:
     return vector_cosine(np.sum(v1, axis=0), np.sum(v2, axis=0))
 
 
-gen = DataGeneration()
-n_cluster = 20
+gen = DataGeneration(shuffle=sorted_shuffle)
+n_cluster = 2
 n_point_each_cluster = 25
 n_dim_datapoint = 10000
 output = gen.gen_random_dataset(n_cluster=n_cluster, n_point_each_cluster=n_point_each_cluster,
