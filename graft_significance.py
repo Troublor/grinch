@@ -10,7 +10,7 @@ from clustering.evaluation import dendrogram_purity
 from clustering.grinch import Grinch
 from clustering.online import OnlineHAC
 from clustering.rotation import RotationHAC
-from gendataset.generate_dataset import DataGeneration
+from gendataset.realworld_dataset import DataProcessor
 from gendataset.shuffle import *
 from model.cluster import GroundTruthCluster, Cluster
 from model.data_point import DataPoint, BinaryDataPoint
@@ -25,7 +25,11 @@ def is_zero_vector(vector: List[int]) -> bool:
         return True
 
 
-def data_wrapper(dataset, n_cluster: int) -> Tuple[List[DataPoint], List[GroundTruthCluster]]:
+def data_wrapper(dataset) -> Tuple[List[DataPoint], List[GroundTruthCluster]]:
+    n_cluster = 0
+    for index in dataset[0]:
+        if index >= n_cluster:
+            n_cluster = index + 1
     count = [0 for i in range(n_cluster)]
     cc = [[] for i in range(n_cluster)]
     data_stream = []
@@ -59,7 +63,7 @@ def param_print(*params):
 
 
 stdout = sys.stdout
-with open("experiment/synthetic/grinch.txt", "w") as file:
+with open("experiment/synthetic/graft_significance.txt", "w") as file:
     sys.stdout = stdout
 
     total_time = 0
@@ -67,11 +71,7 @@ with open("experiment/synthetic/grinch.txt", "w") as file:
     n_workers = 16
     plot_path = "experiment/graft_significance/graft.jpg"
     for i in range(n_repeat):
-        gen = DataGeneration(shuffle=random_shuffle)
-        n_cluster = 5
-        n_point_each_cluster = 25
-        n_dim_datapoint = 1000
-        param_print("n_cluster", "n_point_each_cluster", "n_dim_datapoint")
+        gen = DataProcessor()
 
         single_nn_search = False
         k_nn = 25
@@ -88,9 +88,8 @@ with open("experiment/synthetic/grinch.txt", "w") as file:
         k_nsw = 50
         param_print("navigable_small_world_graphs", "k_nsw")
 
-        output = gen.gen_random_dataset(n_cluster=n_cluster, n_point_each_cluster=n_point_each_cluster,
-                                        n_dim_datapoint=n_dim_datapoint)
-        data_stream, ground_truth = data_wrapper(output, n_cluster)
+        output = gen.read_imgs()
+        data_stream, ground_truth = data_wrapper(output)
 
         monitor = DpMonitor(n_data_points=len(data_stream), n_workers=n_workers, ground_truth=ground_truth)
 

@@ -6,7 +6,7 @@ import imageio
 
 
 class DataProcessor(object):
-    def __init__(self, dirname='../aloi-500-balance'):
+    def __init__(self, dirname='aloi-500-balance'):
         self.dir = dirname
 
     def read_imgs(self):
@@ -26,7 +26,7 @@ class DataProcessor(object):
         print('Read {} images.'.format(len(imageset)))
         print('Dimension of image: {}.'.format(len(imageset[0])))
 
-        return imageset, index
+        return index, imageset
 
 
 # dprocessor = DataProcessor('../aloi-500-balance')
