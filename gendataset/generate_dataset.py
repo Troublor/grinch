@@ -47,3 +47,5 @@ class DataGeneration(object):
         for cluster in clusters:
             data_stream += cluster
         return index, data_stream
+
+

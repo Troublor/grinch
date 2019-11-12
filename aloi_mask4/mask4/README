@@ -1,0 +1,10 @@
+Masks are provided for the rotated versions of each object, image files
+[objectnr]/[objectnr]_r[angle].png, e.g. 1/1_r45.png. For 0 degrees (r0), the
+filename is [objectnr]/[objectnr]_c1.png (see below).
+
+All other conditions are captured without moving the object. Hence, fairly
+accurate masks have been constructed for each individual camera, image files
+[objectnr]/[objectnr]_c[123].png, e.g. 1/1_c1.png, 1/1_c2.png, and 1/1_c3.png.
+This boils down to the "c1" mask for conditions r0, i110-i250, and for l?c1.
+For l?c2 the "c2" mask should be used, whereas the "c3" masks are for l?c3
+images.
