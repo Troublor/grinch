@@ -1,3 +1,4 @@
+import json
 from itertools import accumulate
 from multiprocessing import Queue, Manager, Pool
 from typing import Any, Optional, Callable, Iterable, Mapping, List, Tuple
@@ -13,7 +14,7 @@ class DpMonitor:
         self.n_data_points = n_data_points
         self.ground_truth = ground_truth
         self.pool = Pool(processes=n_workers)
-        self.dp_over_time = [[0, 0] for _ in range(n_data_points)]
+        self.dp_over_time = [[1, 1] for _ in range(n_data_points)]
 
     def feed(self, index: int, dendrogram: Tree, before: bool):
         self.pool.apply_async(self.slave_worker, args=(index, before, self.ground_truth, dendrogram,),
@@ -36,7 +37,12 @@ class DpMonitor:
         if data[1] is True:
             self.dp_over_time[data[0]][0] = data[2]
         else:
+            # print("after inserting", data[0], "dp =", data[2])
             self.dp_over_time[data[0]][1] = data[2]
+
+    def output_history(self, file):
+        with open(file, "w") as file:
+            file.write(json.dumps(self.dp_over_time))
 
     def show_plot(self):
         x = [i for i in range(self.n_data_points)]

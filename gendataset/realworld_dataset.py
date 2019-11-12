@@ -4,6 +4,8 @@ import glob
 from scipy import ndimage
 import imageio
 
+from gendataset.shuffle import round_robin, random_shuffle
+
 
 class DataProcessor(object):
     def __init__(self, dirname='aloi-500-balance'):
@@ -26,8 +28,16 @@ class DataProcessor(object):
         print('Read {} images.'.format(len(imageset)))
         print('Dimension of image: {}.'.format(len(imageset[0])))
 
-        return index, imageset
+        clusters = []
+        for i in range(len(index)):
+            if len(clusters) <= index[i] - 1:
+                while len(clusters) < index[i] - 1 + 1:
+                    clusters.append([])
+            clusters[index[i] - 1].append(imageset[i])
 
+        return random_shuffle(clusters)
+
+        # return index, imageset
 
 # dprocessor = DataProcessor('../aloi-500-balance')
 # dprocessor.read_imgs()

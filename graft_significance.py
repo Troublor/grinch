@@ -2,6 +2,7 @@ import copy
 import math
 import sys
 import time
+from multiprocessing import Process
 from typing import List, Tuple
 
 import numpy as np
@@ -35,8 +36,8 @@ def data_wrapper(dataset) -> Tuple[List[DataPoint], List[GroundTruthCluster]]:
     data_stream = []
     for index, cluster in enumerate(dataset[0]):
         vector = dataset[1][index]
-        if is_zero_vector(vector):
-            continue
+        # if is_zero_vector(vector):
+        #     continue
         count[cluster] += 1
         dp = BinaryDataPoint(dataset[1][index], str(cluster) + "-" + str(count[cluster]))
         cc[cluster].append(dp)
@@ -62,62 +63,91 @@ def param_print(*params):
         print(param, '=', repr(eval(param)))
 
 
-stdout = sys.stdout
-with open("experiment/synthetic/graft_significance.txt", "w") as file:
-    sys.stdout = stdout
+gen = DataProcessor()
+output = gen.read_imgs()
+data_stream, ground_truth = data_wrapper(output)
 
-    total_time = 0
-    n_repeat = 1
-    n_workers = 16
+
+def grinch_test(data_stream, ground_truth):
     plot_path = "experiment/graft_significance/graft.jpg"
-    for i in range(n_repeat):
-        gen = DataProcessor()
 
-        single_nn_search = False
-        k_nn = 25
-        param_print("single_nn_search", "k_nn")
+    single_nn_search = True
+    k_nn = 30
+    # param_print("single_nn_search", "k_nn")
 
-        single_elimination = False,
-        param_print("single_elimination")
+    single_elimination = False,
+    # param_print("single_elimination")
 
-        capping = False
-        capping_height = 100
-        param_print("capping", "capping_height")
+    capping = False
+    capping_height = 100
+    # param_print("capping", "capping_height")
 
-        navigable_small_world_graphs = False
-        k_nsw = 50
-        param_print("navigable_small_world_graphs", "k_nsw")
+    navigable_small_world_graphs = False
+    k_nsw = 50
+    # param_print("navigable_small_world_graphs", "k_nsw")
 
-        output = gen.read_imgs()
-        data_stream, ground_truth = data_wrapper(output)
+    monitor = DpMonitor(n_data_points=len(data_stream), n_workers=4, ground_truth=ground_truth)
 
-        monitor = DpMonitor(n_data_points=len(data_stream), n_workers=n_workers, ground_truth=ground_truth)
+    clustering = Grinch(cosine_similarity, debug=False, single_nn_search=single_nn_search, k_nn=k_nn,
+                        single_elimination=single_elimination,
+                        capping=capping, capping_height=capping_height,
+                        navigable_small_world_graphs=navigable_small_world_graphs, k_nsw=k_nsw, monitor=monitor)
+    print("Grinch HAC")
+    count = 0
+    start = time.time()
+    for dp in data_stream:
+        print("Grinch: insert data point", count)
+        clustering.insert(dp)
+        count += 1
+    # clustering.dendrogram.print()
+    end = time.time()
+    # print("rotation:", grinch.rotation_count)
+    # print("graft:", grinch.graft_count)
+    # print("restruct:", grinch.restruct_count)
+    # print("similarity:", grinch.similarity_count)
+    # print("reuse:", grinch.similarity_reused_count)
+    print("clustering time:", end - start)
+    # print("dendrogram purity: ", dendrogram_purity(ground_truth, clustering.dendrogram))
+    monitor.join()
+    monitor.show_plot()
+    monitor.output_history("experiment/graft_significance/grinch.json")
+    # monitor.save_plot(plot_path)
 
-        clustering = Grinch(cosine_similarity, debug=False, single_nn_search=single_nn_search, k_nn=k_nn,
-                            single_elimination=single_elimination,
-                            capping=capping, capping_height=capping_height,
-                            navigable_small_world_graphs=navigable_small_world_graphs, k_nsw=k_nsw, monitor=monitor)
-        # clustering = OnlineHAC(cosine_similarity)
-        # clustering = RotationHAC(cosine_similarity)
-        count = 0
-        start = time.time()
-        for dp in data_stream:
-            print("insert data point", count)
-            clustering.insert(dp)
-            count += 1
-        # clustering.dendrogram.print()
-        end = time.time()
-        # print("rotation:", grinch.rotation_count)
-        # print("graft:", grinch.graft_count)
-        # print("restruct:", grinch.restruct_count)
-        # print("similarity:", grinch.similarity_count)
-        # print("reuse:", grinch.similarity_reused_count)
-        print("clustering time:", end - start)
-        total_time += end - start
-        print("dendrogram purity: ", dendrogram_purity(ground_truth, clustering.dendrogram))
-        monitor.join()
-        # monitor.show_plot()
-        monitor.save_plot(plot_path)
-        print("=======================================================================================================")
-    print("average time:", total_time / n_repeat)
-sys.stdout = stdout
+
+def rotation_test(data_stream, ground_truth):
+    plot_path = "experiment/graft_significance/rotation.jpg"
+
+    monitor = DpMonitor(n_data_points=len(data_stream), n_workers=4, ground_truth=ground_truth)
+
+    clustering = RotationHAC(cosine_similarity)
+    print("Rotation HAC")
+    count = 0
+    start = time.time()
+    for dp in data_stream:
+        print("Rotation: insert data point", count)
+        clustering.insert(dp)
+        monitor.feed(count, copy.deepcopy(clustering.dendrogram), False)
+        count += 1
+    # clustering.dendrogram.print()
+    end = time.time()
+    # print("rotation:", grinch.rotation_count)
+    # print("graft:", grinch.graft_count)
+    # print("restruct:", grinch.restruct_count)
+    # print("similarity:", grinch.similarity_count)
+    # print("reuse:", grinch.similarity_reused_count)
+    print("clustering time:", end - start)
+    print("dendrogram purity: ", dendrogram_purity(ground_truth, clustering.dendrogram))
+    monitor.join()
+    monitor.show_plot()
+    monitor.output_history("experiment/graft_significance/rotation.json")
+    # monitor.save_plot(plot_path)
+
+
+p1 = Process(target=grinch_test, args=(data_stream, ground_truth,))
+p2 = Process(target=rotation_test, args=(data_stream, ground_truth,))
+p1.start()
+p2.start()
+p2.join()
+p1.join()
+
+
