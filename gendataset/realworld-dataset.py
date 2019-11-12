@@ -25,7 +25,7 @@ class DataProcessor(object):
         assert len(index) == len(imageset)
         print('Read {} datapoints.'.format(len(imageset)))
         print('Dimension of datapoint: {}.'.format(len(imageset[0])))
-        print('First datapoint: {}'.format(imageset[0]))
+        # print('First datapoint: {}'.format(imageset[0]))
 
         return index, imageset
 
