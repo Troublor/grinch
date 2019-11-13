@@ -11,7 +11,7 @@ class DataProcessor(object):
     def __init__(self, dirname='aloi-500-balance'):
         self.dir = dirname
 
-    def read_imgs(self):
+    def read_imgs(self, shuffle=None):
         imageset = []
         index = []
         extension = '*.png'
@@ -28,6 +28,9 @@ class DataProcessor(object):
         print('Read {} images.'.format(len(imageset)))
         print('Dimension of image: {}.'.format(len(imageset[0])))
 
+        if shuffle is None:
+            return index, imageset
+
         clusters = []
         for i in range(len(index)):
             if len(clusters) <= index[i] - 1:
@@ -35,7 +38,7 @@ class DataProcessor(object):
                     clusters.append([])
             clusters[index[i] - 1].append(imageset[i])
 
-        return random_shuffle(clusters)
+        return shuffle(clusters)
 
         # return index, imageset
 
