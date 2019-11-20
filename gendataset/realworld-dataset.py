@@ -13,21 +13,22 @@ class DataProcessor(object):
         imageset = []
         index = []
         extension = '*.png'
-        for image_path in glob.glob("{}/*/*.png".format(self.dir)):
+        for image_path in glob.glob("{}/*/{}".format(self.dir, extension)):
             cls_index = re.findall(r'(\d*)_', image_path.split('\\')[-1])
             image = imageio.imread(image_path)
-            image = np.reshape(image, (image.shape[0] * image.shape[1], 1))
+            image = np.ndarray.tolist(np.reshape(image, image.size))
             imageset.append(image)
             index.append(int(cls_index[0]))
             # print('index = {}'.format(cls_index))
             # print(image_path)
 
         assert len(index) == len(imageset)
-        print('Read {} images.'.format(len(imageset)))
-        print('Dimension of image: {}.'.format(len(imageset[0])))
+        print('Read {} datapoints.'.format(len(imageset)))
+        print('Dimension of datapoint: {}.'.format(len(imageset[0])))
+        # print('First datapoint: {}'.format(imageset[0]))
 
-        return imageset, index
+        return index, imageset
 
 
 # dprocessor = DataProcessor('../aloi-500-balance')
-# # dprocessor.read_imgs()
+# dprocessor.read_imgs()
