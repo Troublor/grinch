@@ -98,7 +98,7 @@ class Grinch(RotationHAC):
             end = time.time()
             # print("while condition check time:", end - start)
             start = time.time()
-            if self._capping and (self._capping_height < 0 or x.height > self._capping_height):
+            if self._capping and 0 < self._capping_height < x.height:
                 break
             if self._debug:
                 print("rotation happens")
@@ -192,6 +192,9 @@ class Grinch(RotationHAC):
             if v_l <= v_v_s:
                 v = v.parent
                 changed = True
+            if self._capping and self._capping_height > 0 and (
+                    l.height > self._capping_height and v.height > self._capping_height):
+                break
             if not changed:
                 break
         # print("total graft similarity time:", total_similarity_time)
