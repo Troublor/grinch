@@ -19,11 +19,14 @@ class DataPoint:
         pass
 
 
-class TrivialDataPoint(DataPoint, float):
+class TrivialDataPoint(DataPoint):
+    def __init__(self, v):
+        super().__init__(str(v))
+        self.v = v
 
     def pairwise_similarity(self, other) -> float:
-        if self * other > 0:
-            if math.fabs(self - other) <= 1:
+        if self.v * other.v > 0:
+            if math.fabs(self.v - other.v) <= 1:
                 return 2
         return 1
 
