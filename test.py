@@ -14,11 +14,12 @@ with open("experiment/graft_significance/grinch.json") as file:
     print(data)
     print(y_instant)
     print(y_accumu)
-    plt.plot(x, y_instant, 'r--', marker="o", label='instantaneous')
-    plt.plot(x, y_accumu, 'b--', marker="o", label='accumulate')
+    plt.plot(x, y_instant, 'r--', label='instantaneous')
+    plt.plot(x, y_accumu, 'b--', label='accumulate')
     plt.xlabel('Data Points')  # X轴标签
     plt.ylabel("Dendrogram Purity Change")  # Y轴标签
     plt.legend()
+    plt.savefig("/home/troublor/Desktop/1.png")
     plt.show()
 
     # joint analysis
@@ -28,9 +29,11 @@ with open("experiment/graft_significance/grinch.json") as file:
         data1 = json.loads(s)
         y_grinch = list(map(lambda item: item[1], data))
         y_rotation = list(map(lambda item: item[1], data1))
-        plt.plot(x, y_grinch, 'r--', marker="o", label='grinch')
-        plt.plot(x, y_rotation, 'b--', marker="o", label='rotation')
+        plt.plot(x, y_grinch, 'r--', label='grinch')
+        plt.plot(x, y_rotation, 'b--', label='rotation')
         plt.xlabel('Data Points')  # X轴标签
         plt.ylabel("Dendrogram Purity")  # Y轴标签
         plt.legend()
+        plt.savefig("/home/troublor/Desktop/2.png")
         plt.show()
+

@@ -161,7 +161,7 @@ class Grinch(RotationHAC):
             l_l_s = self.get_similarity(l, l.sibling)
             stop = time.time()
             total_similarity_time += stop - start
-            if v_l > max(v_v_s, l_l_s):
+            if v_l >= max(v_v_s, l_l_s):
                 graft_start = time.time()
                 if self._debug:
                     print("graft happens")
@@ -186,10 +186,10 @@ class Grinch(RotationHAC):
             if self._single_elimination and v_l < l_l_s and v_l < v_v_s:
                 break
             changed = False
-            if v_l <= l_l_s:
+            if v_l < l_l_s:
                 l = l.parent
                 changed = True
-            if v_l <= v_v_s:
+            if v_l < v_v_s:
                 v = v.parent
                 changed = True
             if not changed:
