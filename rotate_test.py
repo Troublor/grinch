@@ -21,6 +21,7 @@ class MyTestCase(unittest.TestCase):
             clustering.insert(d)
         clustering.dendrogram.print()
         self.assertTrue(True)
+        print(clustering.dendrogram.to_json())
 
 
 if __name__ == '__main__':

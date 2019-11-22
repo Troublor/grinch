@@ -1,3 +1,4 @@
+import json
 from typing import Union
 
 import treelib
@@ -41,6 +42,9 @@ class Tree(Node):
         traverse_tree(self.root, None)
 
         tree.show(data_property="string")
+
+    def to_json(self) -> str:
+        return json.dumps(self.root.to_dict())
 
 
 def lca(n1: Union[Node, None], n2: Union[Node, None]) -> Union[Node, None]:

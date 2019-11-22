@@ -247,7 +247,7 @@ class Node(Cluster):
         return self._rc == child
 
     def __str__(self):
-        return list(map(lambda item: str(item.id), self.data_points))
+        return str(list(map(lambda item: str(item.id), self.data_points)))
 
     def sanity_check(self):
         assert len(self.data_points) > 0
@@ -264,6 +264,19 @@ class Node(Cluster):
     @property
     def string(self):
         return list(map(lambda item: str(item.id), self.data_points))
+
+    def to_dict(self) -> dict:
+        r = {
+            "name": str(self),
+            "children": [],
+        }
+        if self.rchild is not None:
+            r["children"].append(self.rchild.to_dict())
+        if self.lchild is not None:
+            r["children"].append(self.lchild.to_dict())
+        if len(r["children"]) == 0:
+            del r["children"]
+        return r
 
 
 class Leaf(Node):
