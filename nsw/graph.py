@@ -9,6 +9,9 @@ from .node import Node
 
 
 class Graph(object):
+    """
+    the small world graph used for nearest neighbor search approximation
+    """
     def __init__(self, k: int, f: Callable[[Cluster, Cluster], float]):
         self._nodes: List[Node] = []
         self._k = k

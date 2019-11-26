@@ -9,11 +9,14 @@ from .hac import HAC
 
 
 class RotationHAC(HAC):
+    """
+    The implementation of Rotation Algorithm
+    """
 
     def insert(self, data_point: DataPoint):
         leaf = Leaf(data_point)
         sibling = self.nearest_neighbour(leaf)
-        new_node = self.make_sib(sibling, leaf)
+        self.make_sib(sibling, leaf)
         for v in self.dendrogram.descendants:
             while v.sibling is not None and v.aunt is not None and \
                     self.get_similarity(v, v.sibling) < self.get_similarity(v, v.aunt):

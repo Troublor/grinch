@@ -8,6 +8,10 @@ from model.data_point import DataPoint
 
 
 class HAC:
+    """
+    The base class of Hierarchical Agglomerative Clustering algorithm
+    This class should not be directly used to create an object
+    """
     def __init__(self, f: Callable[[Cluster, Cluster], float]):
         # the dendrogram tree, only store its root node
         self.dendrogram: Tree = Tree()
@@ -16,19 +20,33 @@ class HAC:
 
         self.similarity_reused_count = 0
         self.similarity_count = 0
-
+        # the table of similarity between any two nodes (cluster)
+        # this table is used to avoid redundant calculation of similarity
         self._similarity_table: Dict[Node, Dict[Node, float]] = {}
+        # the number of times that similarity value of two nodes are retrieved from similarity table
+        self.similarity_reused_count = 0
+        # the number of times to get similarity value of two nodes
+        self.similarity_count = 0
 
     def insert(self, data_point: DataPoint):
-        pass
+        """
+        insert a new data point in the dendrogram
+        """
+        raise NotImplementedError()
 
     def nearest_neighbour(self, x: Node) -> Union[Node, None]:
         """
-        search for the nearest node(cluster)
+        search for the nearest leaf node(cluster) in the dendrogram
         """
         return self.constr_nearest_neighbour(x, [])
 
     def constr_nearest_neighbour(self, x: Node, exclude: List[Cluster]) -> Union[Node, None]:
+        """
+        search for the nearest leaf node(cluster) in the dendrogram exclude those in the exclude list
+        :param x: the node that we need to find nearest neighbor for
+        :param exclude: exclusion list
+        :return: The nearest neighbor leaf or None (not found)
+        """
         # search among leaves
         if self.dendrogram.root is None:
             return None
@@ -81,13 +99,17 @@ class HAC:
             return parent
 
     def get_similarity(self, n1: Node, n2: Node) -> float:
+        """
+        get the similarity of two nodes
+        """
         self.similarity_count += 1
         if n1 in self._similarity_table and n2 in self._similarity_table[n1] and not n1.updated and not n2.updated:
-            # print("similarity reused")
+            # the similarity value in the similarity table can be reused
             self.similarity_reused_count += 1
             return self._similarity_table[n1][n2]
-        # print("similarity update")
+        # we need to calculate the similarity
         sim = self.f(n1, n2)
+        # update the similarity table
         if n1 not in self._similarity_table:
             self._similarity_table[n1] = {n2: sim}
         else:

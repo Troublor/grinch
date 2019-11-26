@@ -4,32 +4,43 @@ import sys
 import time
 from typing import Union, List, Callable, Dict
 
-import nsw
+from .hac import HAC
 from dendrogram.node import Node, Leaf
 from dendrogram.tree import lca, swap
 from model.cluster import Cluster
 from model.data_point import DataPoint
 from monitor.dendrogram_purity import DpMonitor
 from nsw.graph import Graph
-from .rotation import RotationHAC
 
 
-class Grinch(RotationHAC):
+class Grinch(HAC):
     def __init__(self, f: Callable[[Cluster, Cluster], float], capping=False, capping_height=-1,
                  single_elimination=False, single_nn_search=False, k_nn=-1, navigable_small_world_graphs=False,
                  k_nsw=-1, debug=False, monitor=None):
+        """
+        :param f: linkage function
+        :param capping: enable capping approximation
+        :param capping_height: the parameter h of capping approximation
+        :param single_elimination: enable single elimination mode approximation
+        :param single_nn_search: enable single nearest neighbor search approximation
+        :param k_nn: the parameter k of single nearest neighbor search approximation
+        :param navigable_small_world_graphs: enable navigable small world graphs approximation
+        :param k_nsw: the parameter k of navigable small world graphs approximation
+        :param debug: print debug information
+        :param monitor: the monitor to monitor dendrogram purity during inserting data points
+        """
         super().__init__(f)
 
+        # the monitor used to monitor dendrogram purity during inserting data points
         self.monitor: DpMonitor = monitor
         self.data_point_count = 0
 
+        # the number of times that rotation subroutine has been performed
         self.rotation_count = 0
+        # the number of times that graft subroutine has been performed
         self.graft_count = 0
+        # the number of times that restruct subroutine has been performed
         self.restruct_count = 0
-        self.similarity_reused_count = 0
-        self.similarity_count = 0
-
-        self._similarity_table: Dict[Node, Dict[Node, float]] = {}
 
         self._debug = debug
         self._capping = capping
@@ -53,9 +64,18 @@ class Grinch(RotationHAC):
             self._nsw_graph = Graph(self._k_nsw, f)
 
     def nearest_neighbour(self, x: Node) -> Union[Node, None]:
+        """
+        search for the nearest leaf node(cluster) in the dendrogram
+        """
         return self.constr_nearest_neighbour(x, exclude=[])
 
     def constr_nearest_neighbour(self, x: Node, exclude: List) -> Union[Node, None]:
+        """
+        search for the nearest leaf node(cluster) in the dendrogram exclude those in the exclude list
+        :param x: the node that we need to find nearest neighbor for
+        :param exclude: exclusion list
+        :return: The nearest neighbor leaf or None (not found)
+        """
         if self._navigable_small_world_graphs:
             return self._nsw_graph.constr_nearest_neighbor(x, exclude=exclude)
         else:
@@ -75,29 +95,21 @@ class Grinch(RotationHAC):
             return nearest
 
     def insert(self, data_point: DataPoint):
-        g_start = time.time()
+        """
+        insert a new data point in the dendrogram
+        """
         if self._navigable_small_world_graphs:
             x = self._nsw_graph.add_data_point(data_point)
         else:
             x = Leaf(data_point)
-        # start = time.time()
         sibling = self.nearest_neighbour(x)
-        # end = time.time()
-        # print("insert search neighbour:", end - start)
-        new_node = self.make_sib(sibling, x)
-        # end = time.time()
-        # print("insert new node:", end - start)
+        self.make_sib(sibling, x)
         if self._debug:
             self.dendrogram.root.sanity_check()
             print("after insertion")
             self.dendrogram.print()
-        # print("rotation begins")
-        start = time.time()
         while x.sibling is not None and x.aunt is not None and \
                 self.get_similarity(x, x.sibling) < self.get_similarity(x.aunt, x.sibling):
-            end = time.time()
-            # print("while condition check time:", end - start)
-            start = time.time()
             if self._capping and (self._capping_height < 0 or x.height > self._capping_height):
                 break
             if self._debug:
@@ -109,29 +121,20 @@ class Grinch(RotationHAC):
                 print("after rotation")
                 self.dendrogram.root.sanity_check()
                 self.dendrogram.print()
-            end = time.time()
-            # print("rotation time:", end - start)
-            start = time.time()
         p = x.parent
         if self._single_nn_search:
             self._k_nn_leaves = self.k_nn_search(x, k=self._k_nn)
-        start = time.time()
         if self.monitor is not None:
             self.monitor.feed(self.data_point_count, before=True, dendrogram=copy.deepcopy(self.dendrogram))
         while p is not None:
             p = self.graft(p)
             if self._debug:
                 self.dendrogram.root.sanity_check()
-        end = time.time()
-        # print("total graft time:", end - start)
-        g_end = time.time()
-        # print("insert total time:", g_end - g_start)
         if self.monitor is not None:
             self.monitor.feed(self.data_point_count, before=False, dendrogram=copy.deepcopy(self.dendrogram))
         self.data_point_count += 1
 
     def graft(self, v: Node) -> Union[Node, None]:
-        # start = time.time()
         if self._single_nn_search:
             search_result = self.k_nn_search(v, k=1, exclude=v.lvs, search_range=self._k_nn_leaves)
             if isinstance(search_result, list) and len(search_result) > 0:
@@ -140,8 +143,6 @@ class Grinch(RotationHAC):
                 l = None
         else:
             l = self.constr_nearest_neighbour(v, v.lvs)
-        # end = time.time()
-        # print("graft search neighbour time:", end - start)
         v_prime = lca(v, l)
         st = v
         dead_lock_count = 0
@@ -162,14 +163,10 @@ class Grinch(RotationHAC):
             stop = time.time()
             total_similarity_time += stop - start
             if v_l >= max(v_v_s, l_l_s):
-                graft_start = time.time()
                 if self._debug:
                     print("graft happens")
-                # start = time.time()
                 v = self.make_sib(v, l)
                 self.graft_count += 1
-                # end = time.time()
-                # print("graft time:", end - start)
                 if self._debug:
                     self.dendrogram.root.sanity_check()
                 z = v.sibling
@@ -180,8 +177,6 @@ class Grinch(RotationHAC):
                 if self._debug:
                     print("after restruct")
                     self.dendrogram.print()
-                graft_end = time.time()
-                # print("graft time:", graft_end - graft_start)
                 break
             if self._single_elimination and v_l < l_l_s and v_l < v_v_s:
                 break
@@ -194,7 +189,6 @@ class Grinch(RotationHAC):
                 changed = True
             if not changed:
                 break
-        # print("total graft similarity time:", total_similarity_time)
         if v == st:
             return v_prime
         else:
@@ -228,6 +222,14 @@ class Grinch(RotationHAC):
 
     def k_nn_search(self, x: Node, k: int = 1, exclude: List[Node] = None,
                     search_range: List[Node] = None) -> Union[List[Node], None]:
+        """
+        search for k nodes that is nearest to node x in a given search list, excluding nodes in exclusion list
+        :param x: the node that we find nearest neighbors for
+        :param k: how many neighbors to find
+        :param exclude: exclusion list
+        :param search_range: search list
+        :return: k nodes that is nearest to node x
+        """
         # search among leaves
         if exclude is None:
             exclude = [x]
@@ -257,10 +259,8 @@ class Grinch(RotationHAC):
     def get_similarity(self, n1: Node, n2: Node) -> float:
         self.similarity_count += 1
         if n1 in self._similarity_table and n2 in self._similarity_table[n1] and not n1.updated and not n2.updated:
-            # print("similarity reused")
             self.similarity_reused_count += 1
             return self._similarity_table[n1][n2]
-        # print("similarity update")
         if self._navigable_small_world_graphs:
             sim = self._nsw_graph.get_similarity(n1, n2)
         else:

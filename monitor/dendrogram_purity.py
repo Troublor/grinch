@@ -1,7 +1,7 @@
 import json
 from itertools import accumulate
-from multiprocessing import Queue, Manager, Pool
-from typing import Any, Optional, Callable, Iterable, Mapping, List, Tuple
+from multiprocessing import Queue, Pool
+from typing import List, Tuple
 from matplotlib import pyplot
 
 from clustering.evaluation import dendrogram_purity
@@ -10,17 +10,36 @@ from model.cluster import GroundTruthCluster
 
 
 class DpMonitor:
+    """
+    Thr monitor to monitor dendrogram purity during clustering
+    """
     def __init__(self, n_data_points: int, n_workers: int, ground_truth: List[GroundTruthCluster]):
+        """
+        :param n_data_points: the number of data points in total
+        :param n_workers: the number of processors used to calculate dendrogram purity concurrently
+        :param ground_truth: clustering ground truth
+        """
         self.n_data_points = n_data_points
         self.ground_truth = ground_truth
         self.pool = Pool(processes=n_workers)
+        # a list: the dendrogram purity before and after graft subroutine with regard to each data point insertion
         self.dp_over_time = [[1, 1] for _ in range(n_data_points)]
 
     def feed(self, index: int, dendrogram: Tree, before: bool):
+        """
+        provide dendrogram tree to calculate purity
+        :param index: the index of data point insertion
+        :param dendrogram: dendrogram tree
+        :param before: whether this is before graft
+        """
         self.pool.apply_async(self.slave_worker, args=(index, before, self.ground_truth, dendrogram,),
                               callback=self.slave_callback)
 
     def join(self):
+        """
+        wait for tasks to finish and exit monitoring
+        :return:
+        """
         self.pool.close()
         self.pool.join()
 

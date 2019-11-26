@@ -13,7 +13,7 @@ from clustering.rotation import RotationHAC
 from gendataset.generate_dataset import DataGeneration
 from gendataset.shuffle import *
 from model.cluster import GroundTruthCluster, Cluster
-from model.data_point import DataPoint, BinaryDataPoint
+from model.data_point import DataPoint, BinaryVectorDataPoint
 from monitor.dendrogram_purity import DpMonitor
 
 
@@ -34,7 +34,7 @@ def data_wrapper(dataset, n_cluster: int) -> Tuple[List[DataPoint], List[GroundT
         if is_zero_vector(vector):
             continue
         count[cluster] += 1
-        dp = BinaryDataPoint(dataset[1][index], str(cluster) + "-" + str(count[cluster]))
+        dp = BinaryVectorDataPoint(np.array(dataset[1][index]), str(cluster) + "-" + str(count[cluster]))
         cc[cluster].append(dp)
         data_stream.append(dp)
     clusters = []

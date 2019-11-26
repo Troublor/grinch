@@ -3,11 +3,15 @@ from typing import Union
 
 import treelib
 
-from dendrogram.node import Node
 from .node import Node
 
 
 class Tree(Node):
+    """
+    This class represents the dendrogram tree, (a head node)
+    a tree can be represented by a head node which only have one right child which is the root of the dendrogram tree.
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -25,9 +29,13 @@ class Tree(Node):
 
     @lchild.setter
     def lchild(self, child):
-        raise Exception("root node do not have left child")
+        raise Exception("head node do not have left child")
 
     def print(self):
+        """
+        use treelib package to print dendrogram in a human-readable way
+        :return:
+        """
         tree = treelib.Tree()
         if self.root is not None:
             print("number of leaves:", len(self.root.lvs))
@@ -65,6 +73,9 @@ def lca(n1: Union[Node, None], n2: Union[Node, None]) -> Union[Node, None]:
 
 
 def swap(s: Node, a: Node):
+    """
+    swap two node (together with the subtree rooted at these two nodes) in the dendrogram tree
+    """
     s_par = s.parent
     a_par = a.parent
     if s_par.lchild == s:

@@ -8,6 +8,9 @@ from .hac import HAC
 
 
 class OnlineHAC(HAC):
+    """
+    The implementation of Online algorithm
+    """
 
     def insert(self, data_point: DataPoint):
         leaf = Leaf(data_point)

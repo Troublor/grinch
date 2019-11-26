@@ -8,6 +8,9 @@ from model.data_point import DataPoint
 
 
 def dendrogram_purity(ground_truth: List[GroundTruthCluster], dendrogram: Tree) -> float:
+    """
+    Calculate the dendrogram purity of dendrogram tree
+    """
     dps = [leaf.data_point for leaf in dendrogram.lvs]
     partial_ground_truth = []
     for cluster in ground_truth:

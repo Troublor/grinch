@@ -42,8 +42,4 @@ def random_shuffle(clusters: List[List[List[int]]]) -> Tuple[List[int], List[Lis
     mapIndexPosition = list(zip(index, dataset))
     random.shuffle(mapIndexPosition)
     s_index, s_dataset = zip(*mapIndexPosition)
-
-    # print("original index = {}".format(index))
-    # print("shuffled index = {}".format(s_index))
-    # print("shuffled dataset = {}".format(s_dataset))
     return s_index, s_dataset

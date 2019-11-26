@@ -7,6 +7,9 @@ from sortedcontainers import SortedList
 
 
 class Node(dendrogram.Leaf):
+    """
+    this class represents the node in small world graph
+    """
     def __init__(self, data_point: DataPoint):
         super().__init__(data_point)
         self._neighbors: Dict[Node, float] = {}

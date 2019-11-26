@@ -1,11 +1,15 @@
-import copy
-from typing import Tuple, List, Union
+from typing import List, Union
 
 from model.cluster import Cluster
 from model.data_point import DataPoint
 
 
 class Node(Cluster):
+    """
+    This class represents the node in the dendrogram tree
+    A node is essentially a Cluster of data points
+    """
+
     def __init__(self):
         super().__init__()
         # parent node
@@ -18,15 +22,17 @@ class Node(Cluster):
         self._descendants: List[Node] = []
         # node height from deepest leaf
         self._height = 1
-
+        # whether the subtree rooted at this node has been updated
         self.updated = True
 
     @property
     def _disconnected(self):
+        # whether this node does not have parent.
         return self._par is None
 
     def _left_connect(self, child):
         """
+        safely connect a new left child (only if the old one is disconnected)
         :type child: Node
         """
         assert child._disconnected
@@ -36,6 +42,7 @@ class Node(Cluster):
 
     def _right_connect(self, child):
         """
+        safely connect a new right child (only if the old one is disconnected)
         :type child: Node
         """
         assert child._disconnected
@@ -44,6 +51,9 @@ class Node(Cluster):
         child._par = self
 
     def _disconnect(self):
+        """
+        disconnect self from its parent node
+        """
         if self._par is None:
             return
         if self._par._lc == self:
@@ -54,10 +64,16 @@ class Node(Cluster):
             self._par = None
 
     def _disconnect_left(self):
+        """
+        disconnect left child node of self
+        """
         if self._lc is not None:
             self._lc._disconnect()
 
     def _disconnect_right(self):
+        """
+        disconnect left child node of self
+        """
         if self._rc is not None:
             self._rc._disconnect()
 
@@ -83,6 +99,8 @@ class Node(Cluster):
         :type left_child: Node
         """
         if left_child is None:
+            # if the left child of one node is set None, which means this node only has one child
+            # then this node should be eliminated
             parent = self._par
             rchild = self._rc
             self._disconnect_left()
@@ -110,6 +128,8 @@ class Node(Cluster):
         :type right_child: Node
         """
         if right_child is None:
+            # if the right child of one node is set None, which means this node only has one child
+            # then this node should be eliminated
             parent = self._par
             lchild = self._lc
             self._disconnect_right()
@@ -129,7 +149,7 @@ class Node(Cluster):
 
     def _update_cache(self):
         """
-        update the cluster cache
+        update the cluster cache (i.e. descendants, height of this node)
         """
         # update self cluster cache and descendants cache
         self.updated = True
@@ -206,10 +226,14 @@ class Node(Cluster):
 
     @property
     def descendants(self) -> List:
+        # should return a copy
         return list(self._descendants)
 
     @property
-    def lvs(self):
+    def lvs(self) -> List:
+        """
+        all the leaf nodes in the subtree rooted by this node
+        """
         if len(self._descendants) == 0:
             if hasattr(self, 'root'):
                 return []
@@ -227,6 +251,9 @@ class Node(Cluster):
 
     @property
     def sibling(self):
+        """
+        get the sibling node of self
+        """
         if self.parent is None:
             return None
         if self == self.parent.lchild:
@@ -236,6 +263,9 @@ class Node(Cluster):
 
     @property
     def aunt(self):
+        """
+        get aunt node of self (i.e. the sibling of parent)
+        """
         if self.parent is None:
             return None
         return self.parent.sibling
@@ -280,6 +310,9 @@ class Node(Cluster):
 
 
 class Leaf(Node):
+    """
+    a special kind of node which only contains one data point
+    """
     def __init__(self, data_point: DataPoint):
         super().__init__()
         self.data_points = [data_point]

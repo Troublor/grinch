@@ -8,6 +8,7 @@ from random import choices
 
 class DataGeneration(object):
     def __init__(self, shuffle: Callable[[List[List[List[int]]]], Tuple[List[int], List[List[int]]]] = None):
+        # the shuffle function to shuffle the generated dataset
         self.shuffle = shuffle
 
     def gen_random_dataset(self, n_cluster=25, n_point_each_cluster=100, n_dim_datapoint=10000) -> \
@@ -33,10 +34,6 @@ class DataGeneration(object):
             count += len(cluster)
         assert n_cluster * n_point_each_cluster == count
         assert n_dim_datapoint == len(clusters[0][0])
-
-        # print("n_cluster = {}\nn_dim_datapoint = {}\nn_point_each_cluster = {}".format(n_cluster, n_dim_datapoint,
-        #                                                                                n_point_each_cluster))
-        # print("size of synthesized dataset = {} * {}".format(count, len(clusters[0][0])))
 
         if self.shuffle is not None:
             return self.shuffle(clusters)

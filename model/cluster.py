@@ -5,6 +5,9 @@ from model.data_point import DataPoint
 
 
 class Cluster(object):
+    """
+    One cluster of data points
+    """
     def __init__(self):
         # cluster cache, used to record the set of data points in the cluster
         self._c: List[DataPoint] = []
@@ -45,6 +48,9 @@ class Cluster(object):
 
 
 class GroundTruthCluster(Cluster):
+    """
+    A special cluster that represents the ground truth cluster and it is immutable
+    """
     def __init__(self, data_points: List[DataPoint]):
         super().__init__()
         self._c = data_points

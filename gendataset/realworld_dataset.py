@@ -39,8 +39,3 @@ class DataProcessor(object):
             clusters[index[i] - 1].append(imageset[i])
 
         return shuffle(clusters)
-
-        # return index, imageset
-
-# dprocessor = DataProcessor('../aloi-500-balance')
-# dprocessor.read_imgs()
