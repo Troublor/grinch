@@ -63,7 +63,16 @@ class DpMonitor:
         with open(file, "w") as file:
             file.write(json.dumps(self.dp_over_time))
 
-    def show_plot(self):
+    def show_purity_plot(self):
+        x = [i for i in range(self.n_data_points)]
+        y = list(map(lambda item: item[1], self.dp_over_time))
+        pyplot.plot(x, y, 'b--')
+        pyplot.xlabel('Data Points')  # X轴标签
+        pyplot.ylabel("Dendrogram Purity")  # Y轴标签
+        pyplot.legend()
+        pyplot.show()
+
+    def show_purity_change_before_and_after_graft_plot(self):
         x = [i for i in range(self.n_data_points)]
         y_inst = list(map(lambda item: item[1] - item[0], self.dp_over_time))
         y_accu = list(accumulate(y_inst, lambda a, b: a + b))
