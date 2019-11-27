@@ -5,7 +5,7 @@
 * Type: Implementation
 * Group ID: 12
 * Group Member: CAO Jialun, ZHANG Wuqi, LIU Lu, QUAN Yuqing
-
+* Project Repository: https://github.com/Troublor/grinch
 ---
 
 This is an instruction about how to use our implementation of Grinch clustering algorithm. 
