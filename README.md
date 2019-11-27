@@ -1,4 +1,4 @@
-## COMP 5331 Project
+## COMP 5331 Project @HKUST
 
 ##### Scalable Hierarchical Clustering with Tree Graft
 
