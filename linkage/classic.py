@@ -5,6 +5,14 @@ import numpy as np
 from model.cluster import Cluster
 from model.data_point import TrivialDataPoint
 
+"""
+Files in this package includes some linkage functions. 
+
+A linkage function should take two Cluster objects as input parameters and output a float value, 
+indicating the similarity of two clusters. 
+The larger the output value is, the more similar the two clusters are.
+"""
+
 
 def single_linkage(c1: Cluster, c2: Cluster) -> float:
     # the single linkage function: return the largest similarity of any two data points in two clusters

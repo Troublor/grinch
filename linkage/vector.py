@@ -4,6 +4,14 @@ import numpy as np
 
 from model.cluster import Cluster
 
+"""
+Files in this package includes some linkage functions. 
+
+A linkage function should take two Cluster objects as input parameters and output a float value, 
+indicating the similarity of two clusters. 
+The larger the output value is, the more similar the two clusters are.
+"""
+
 
 def vector_cosine(v1: List[int], v2: List[int]):
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))

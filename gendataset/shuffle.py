@@ -1,6 +1,18 @@
 import random
 from typing import List, Tuple
 
+"""
+This file defines different shuffle functions to shuffle the dataset (the order of data stream).
+ 
+A shuffle function should take a List of clusters as input parameter. 
+Each cluster is a List of vectors and each vector is a List of integer.
+
+A shuffle function should also output a Tuple, in which two element are two list objects. 
+The second list contains all vectors which we will use as data set later.
+The first list is a list of cluster_id of the vectors in the second list, 
+identifying to which cluster each vector belongs.  
+"""
+
 
 def round_robin(clusters: List[List[List[int]]]) -> Tuple[List[int], List[List[int]]]:
     K = len(clusters)

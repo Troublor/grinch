@@ -1,41 +1,17 @@
-from typing import Tuple, List
-
-import numpy as np
+from typing import Tuple
 
 from clustering.evaluation import dendrogram_purity
 from clustering.grinch import Grinch
-from gendataset.realworld_dataset import DataProcessor
+from gendataset.realworld_dataset import generate_realworld_dataset
 from gendataset.shuffle import random_shuffle
 from linkage.vector import cosine_similarity_for_binary_vector_data_point
-from model.cluster import GroundTruthCluster
-from model.data_point import BinaryVectorDataPoint, DataPoint
 from monitor.dendrogram_purity import DpMonitor
-
-
-def data_wrapper(dataset) -> Tuple[List[DataPoint], List[GroundTruthCluster]]:
-    n_cluster = 0
-    for index in dataset[0]:
-        if index >= n_cluster:
-            n_cluster = index + 1
-    count = [0 for i in range(n_cluster)]
-    cc = [[] for i in range(n_cluster)]
-    data_stream = []
-    for index, cluster in enumerate(dataset[0]):
-        count[cluster] += 1
-        dp = BinaryVectorDataPoint(dataset[1][index], str(cluster) + "-" + str(count[cluster]))
-        cc[cluster].append(dp)
-        data_stream.append(dp)
-    clusters = []
-    for c in cc:
-        clusters.append(GroundTruthCluster(c))
-    return data_stream, clusters
 
 
 if __name__ == "__main__":
     # read dataset from ALOI
-    gen = DataProcessor(dirname="./aloi-500-balance")
-    output = gen.read_imgs(shuffle=random_shuffle)  # other shuffle functions are provided in gendataset/shuffle.py
-    data_stream, ground_truth = data_wrapper(output)
+    # other shuffle functions are provided in gendataset/shuffle.py
+    data_stream, ground_truth = generate_realworld_dataset(shuffle=random_shuffle)
 
     # settings of Grinch algorithm
     single_nn_search = True

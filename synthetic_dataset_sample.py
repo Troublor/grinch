@@ -1,42 +1,8 @@
-import copy
-import unittest
-from typing import Tuple, List
-
-import numpy as np
-
 from clustering.evaluation import dendrogram_purity
 from clustering.grinch import Grinch
-from gendataset.generate_dataset import DataGeneration
+from gendataset.synthetic_dataset import generate_synthetic_dataset
 from gendataset.shuffle import random_shuffle
 from linkage.vector import cosine_similarity_for_binary_vector_data_point
-from model.cluster import GroundTruthCluster
-from model.data_point import BinaryVectorDataPoint, DataPoint
-
-
-def is_zero_vector(vector: List[int]) -> bool:
-    for e in vector:
-        if e != 0:
-            return False
-    else:
-        return True
-
-
-def data_wrapper(dataset, n_cluster: int) -> Tuple[List[DataPoint], List[GroundTruthCluster]]:
-    count = [0 for i in range(n_cluster)]
-    cc = [[] for i in range(n_cluster)]
-    data_stream = []
-    for index, cluster in enumerate(dataset[0]):
-        vector = dataset[1][index]
-        if is_zero_vector(vector):
-            continue
-        count[cluster] += 1
-        dp = BinaryVectorDataPoint(np.array(dataset[1][index]), str(cluster) + "-" + str(count[cluster]))
-        cc[cluster].append(dp)
-        data_stream.append(dp)
-    clusters = []
-    for c in cc:
-        clusters.append(GroundTruthCluster(c))
-    return data_stream, clusters
 
 
 if __name__ == "__main__":
@@ -45,10 +11,9 @@ if __name__ == "__main__":
     n_point_each_cluster = 25
     n_dim_datapoint = 2500
     # generate synthetic dataset
-    gen = DataGeneration(shuffle=random_shuffle)  # other shuffle functions are provided in gendataset/shuffle.py
-    output = gen.gen_random_dataset(n_cluster=n_cluster, n_point_each_cluster=n_point_each_cluster,
-                                    n_dim_datapoint=n_dim_datapoint)
-    data_stream, ground_truth = data_wrapper(output, n_cluster)
+    # other shuffle functions are provided in gendataset/shuffle.py
+    data_stream, ground_truth = generate_synthetic_dataset(n_cluster=n_cluster, n_point_each_cluster=n_point_each_cluster,
+                                   n_dim_datapoint=n_dim_datapoint, shuffle=random_shuffle)
 
     # settings of Grinch algorithm
     single_nn_search = False
