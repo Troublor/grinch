@@ -4,7 +4,8 @@
 
 * Type: Implementation
 * Group ID: 12
-* Group Member: CAO Jialun, ZHANG Wuqi, LIU Lu, QUAN Yuqing
+* Year: 2019
+* Group Member: [@ArabelaTso](https://github.com/ArabelaTso), [@Troublor](https://github.com/Troublor), [@echohermion](https://github.com/echohermion), [@Quanooo](https://github.com/QuanQuanoooooo)
 
 ---
 
